@@ -7,15 +7,7 @@ class Grid:
     width = 10
     height = 20
 
-    cell_length = 40
-
-    def __init__(self):
-        self.grid = [[None for _ in range(self.height)] for _ in range(self.width)]
-
-    def update(self, blocks):
-        for block in blocks:
-            x, y = block.grid_pos
-            self.grid[int(x)][int(y)] = block
+    cell_length = 30
 
     def draw(self, surf):
         pass
@@ -25,113 +17,142 @@ class Block:
     length = Grid.cell_length
 
     def __init__(self, pos):
-        self.grid_pos = pygame.Vector2(pos)
-        self.display_pos = pygame.Vector2(self.grid_pos.x * Grid.cell_length,
-                                          self.grid_pos.y * Grid.cell_length)
-        self.velocity = pygame.Vector2(0, 0)
-        self.initial_pos = pygame.Vector2(pos)
+        self.position = pygame.Vector2(pos)
+        self.initial_position = pygame.Vector2(pos)
+        self.falling = True
+        self.collided_x = False
+        self.prev_x_direction = 'left'
 
-    def update(self, delta, gravity, blocks):
-        self.velocity.y = gravity * delta
-        next_display_pos, next_grid_pos = self.get_move(display_offset=self.velocity)
+    def sort_list(self, direction, lis):
+        def get_y(b):
+            return b.position.y
+        def get_x(b):
+            return b.position.x
+
+        match direction:
+            case 'up':
+                lis.sort(key=get_y)
+            case 'down':
+                lis.sort(key=get_y, reverse=True)
+            case 'right':
+                lis.sort(key=get_x)
+            case 'left':
+                lis.sort(key=get_x, reverse=True)
+        return lis
+
+    def update(self, x_offset, gravity, blocks):
+        next_position = pygame.Vector2(min(Grid.width - 1, max(0, self.position.x + x_offset)),
+                                       min(Grid.height - 1, max(0, self.position.y + gravity)))
+
+        self.check_x(x_offset,blocks,next_position)
+        self.check_y(gravity,blocks,next_position)
+
+
+
+    def check_x(self, x_offset, blocks, next_position):
+        if x_offset > 0:
+            blocks = self.sort_list('left', blocks)
+            self.prev_x_direction = 'left'
+        elif x_offset < 0:
+            blocks = self.sort_list('right', blocks)
+            self.prev_x_direction = 'right'
+        else:
+            blocks = self.sort_list(self.prev_x_direction, blocks)
         for block in blocks:
-            if block is self:
-                continue
-            if block.get_rect().colliderect(self.get_rect(next_display_pos)):
-                if self.velocity.y > 0:
-                    self.display_pos.y = block.display_pos.y - self.length
-                    self.grid_pos.y = block.grid_pos.y - 1
+            if block is not self and block.position == next_position:
+                self.collided_x = True
                 return
+        self.position.x = next_position.x
 
-        self.move(next_display_pos, next_grid_pos)
+    def check_y(self, gravity, blocks, next_position):
+        if gravity >= 0:
+            blocks = self.sort_list('down', blocks)
+        else:
+            blocks = self.sort_list('up', blocks)
 
-    def get_move(self, grid_offset=pygame.Vector2(0, 0), display_offset=pygame.Vector2(0, 0)):
-        d = pygame.Vector2(min((Grid.width - 1) * Grid.cell_length - self.length,
-                               max(0, int(self.display_pos.x + display_offset.x))),
-                           min((Grid.height - 1) * Grid.cell_length - self.length,
-                               max(0, int(self.display_pos.y + display_offset.y))))
-        g = pygame.Vector2(min(Grid.width - 1, max(0, int(self.display_pos.x // Grid.cell_length))),
-                           min(Grid.height - 1, max(0, int(self.display_pos.y // Grid.cell_length))))
-        return d, g
-
-    def move(self, d,g):
-        self.display_pos = d
-        self.grid_pos = g
-
-    def get_rect(self, pos=None):
-        if pos is None:
-            pos = self.display_pos
-        return pygame.Rect(pos, (self.length, self.length))
-
+        for block in blocks:
+            if block is not self and block.position == next_position:
+                return
+        self.position.y = next_position.y
     def draw(self, surf):
-        r = pygame.Rect(self.grid_pos.x * self.length,
-                        self.grid_pos.y * self.length,
-                        self.length,
-                        self.length)
+        r = pygame.Rect((self.position.x * self.length, self.position.y * self.length), (self.length, self.length))
         pygame.draw.rect(surf, Colour.RED, r)
 
 
 class BlockManager:
+    gravity = 1
 
     def __init__(self):
         self.blocks = []
-        self.gravity = 0.25
+        self.falling_blocks = []
+
+        self.time_to_move = 500
+        self.gravity_time = 0
 
     def add(self, block):
         self.blocks.append(block)
+        self.falling_blocks.append(block)
 
-        def get_y(block):
-            return block.grid_pos.y
+        def get_y(b):
+            return b.position.y
 
         self.blocks.sort(key=get_y, reverse=True)  # we do this so that things are checked from bottom to top
 
-    def next_level(self):
-        self.gravity += 1
-
     def update(self, delta):
-        for block in self.blocks:
-            block.update(delta, self.gravity, self.blocks)
+        self.gravity_time += delta
 
+        if self.gravity_time >= self.time_to_move:
+            gravity_modifier = 1
+            self.gravity_time -= self.time_to_move
+        else:
+            gravity_modifier = 0
+
+        x_offset = 0
+        pressed = pygame.key.get_pressed()
+        if pressed[pygame.K_a or pygame.K_LEFT]:
+            x_offset = max(x_offset-1, -1)
+        if pressed[pygame.K_d or pygame.K_RIGHT]:
+            x_offset = min(x_offset + 1, 1)
+
+        x_offset_modifier = 1
+        for block in self.blocks:
+            block.update(x_offset * x_offset_modifier, self.gravity * gravity_modifier, self.blocks)
+            if block.collided_x:
+                x_offset_modifier = 0
+
+        print()
     def draw(self, surf):
         for block in self.blocks:
             block.draw(surf)
 
 
-class Tetrione:
+class Tetrominoe:
     shapes = [
         [[0, 0], [0, 1], [1, 0], [1, 1]],
     ]
 
-    def __init__(self, blockmanager):
+    def __init__(self, block_manager):
         self.shape = choice(self.shapes)
-        self.blockmanager = blockmanager
+        self.block_manager = block_manager
         for coords in self.shape:
-            self.blockmanager.add(Block(coords))
+            self.block_manager.add(Block(coords))
         self.prev_mouse_pos = pygame.mouse.get_pos()
 
     def update(self, delta):
-        offset = pygame.Vector2(pygame.mouse.get_pos()[0] - self.prev_mouse_pos[0], 0)
-        self.prev_mouse_pos = pygame.mouse.get_pos()
-
-        for block in self.blockmanager.blocks:
-            # print(block.initial_pos)
-            # block.display_pos.x = block.initial_pos.x * block.length + ceil(pygame.mouse.get_pos()[0])
-            a,b = block.get_move(display_offset=offset)
-            print(a,b)
-            block.move(a,b)
+        pass
 
 
-class TetrioneManager:
+class TetrominoeManager:
 
-    def __init__(self, blockmanager):
-        self.tetrione = None
-        self.blockmanager = blockmanager
+    def __init__(self, block_manager):
+        self.tetrominoe = None
+        self.block_manager = block_manager
 
     def add(self):
-        self.tetrione = Tetrione(self.blockmanager)
+        self.tetrominoe = Tetrominoe(self.block_manager)
 
     def update(self, delta):
-        self.tetrione.update(delta)
+        self.tetrominoe.update(delta)
 
 
 class Game:
@@ -139,17 +160,13 @@ class Game:
     def __init__(self):
         self.grid = Grid()
         self.block_manager = BlockManager()
-        self.tetrione_manager = TetrioneManager(self.block_manager)
+        self.tetrominoe_manager = TetrominoeManager(self.block_manager)
 
-        # self.block_manager.add(Block((0, 0)))
-
-        # Tetrione(self.block_manager)
-        self.tetrione_manager.add()
+        self.tetrominoe_manager.add()
 
     def update(self, delta):
         self.block_manager.update(delta)
-        self.grid.update(self.block_manager.blocks)
-        self.tetrione_manager.update(delta)
+        self.tetrominoe_manager.update(delta)
 
     def draw(self, surf):
         surf.fill(Colour.BLACK)

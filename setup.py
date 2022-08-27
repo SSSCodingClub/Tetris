@@ -1,9 +1,9 @@
 import pygame
 from random import choice
-from math import ceil
+from math import ceil,floor
 pygame.init()
 
-SCREEN_WIDTH, SCREEN_HEIGHT = 40 * 12, 40 * 20
+SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21
 dimensions = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
 pygame.display.set_caption("Tetris")
