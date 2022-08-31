@@ -21,7 +21,6 @@ class Block:
         self.initial_position = pygame.Vector2(pos)
         self.falling = True
         self.collided_x = False
-        self.prev_x_direction = 'left'
 
     def sort_list(self, direction, lis):
         def get_y(b):
@@ -52,15 +51,22 @@ class Block:
     def check_x(self, x_offset, blocks, next_position):
         if x_offset > 0:
             blocks = self.sort_list('left', blocks)
-            self.prev_x_direction = 'left'
         elif x_offset < 0:
             blocks = self.sort_list('right', blocks)
-            self.prev_x_direction = 'right'
+
+        if x_offset != 0:
+            temp = []
+            for i in blocks:
+                temp.append(i.position.x)
+            print(temp)
+
+        if self.position.x == Grid.width - 1:
+            self.collided_x = True
         else:
-            blocks = self.sort_list(self.prev_x_direction, blocks)
+            self.collided_x = False
+
         for block in blocks:
             if block is not self and block.position == next_position:
-                self.collided_x = True
                 return
         self.position.x = next_position.x
 
@@ -120,7 +126,7 @@ class BlockManager:
             if block.collided_x:
                 x_offset_modifier = 0
 
-        print()
+        # print()
     def draw(self, surf):
         for block in self.blocks:
             block.draw(surf)
