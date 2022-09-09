@@ -1,10 +1,9 @@
 import pygame
-from random import choice
-from math import ceil,floor
 pygame.init()
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21
 dimensions = (SCREEN_WIDTH, SCREEN_HEIGHT)
+screen = pygame.display.set_mode(dimensions)
 
 pygame.display.set_caption("Tetris")
 # icon = pygame.image.load("logo.ico")
@@ -12,7 +11,7 @@ pygame.display.set_caption("Tetris")
 # pygame.display.set_icon(icon)
 
 clock = pygame.time.Clock()
-fps = 120
+fps = 60
 
 
 class Colour:
