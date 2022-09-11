@@ -2,22 +2,7 @@ from typing import Tuple
 from setup import *
 #tetrominoes fun
 
-class Tetrominoe:
-    blocks: list[Tuple] = [(1,1), (0,1),(0,0), (1,0)]
-    
-    def __init__(self) -> None:
-        ...
 
-    def update(self, delta: int) -> None:
-        for event in pygame.event.get(pygame.KEYDOWN):
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
-                    print('a')
-                elif event.key == pygame.K_d:
-                    print('d')
-        
-    def draw(self, surf: pygame.Surface) -> None:
-        ...
 
 class Block:
     side_length: int = 30
@@ -48,8 +33,11 @@ class BlockManager:
     falling: Block = None
 
     def __init__(self):
-        self.blocks: list[Block] = [Block((0,30)), Block((0,0))]
+        self.blocks: list[Block] = []
         self.time: int = 0
+
+    def add_block(self, block):
+        self.blocks.append(block)
 
     def update(self, delta: int):
         self.time += delta
@@ -63,11 +51,38 @@ class BlockManager:
         for block in self.blocks:
             block.draw(surf)
 
+
+class Tetrominoe:
+    shape: list[Tuple] = [(1,1), (0,1),  (0,0), (1,0)]
+
+    def __init__(self, bm: BlockManager) -> None:
+        self.blocks = []
+        for coords in self.shape:
+            x,y = coords
+            self.blocks.append(Block((x * Block.side_length, y * Block.side_length)))
+
+        self.other_blocks = bm.blocks
+
+        for b in self.blocks:
+            bm.add_block(b)
+
+    def update(self, delta: int) -> None:
+        for event in pygame.event.get(pygame.KEYDOWN):
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_a:
+                    for block in self.blocks:
+                        block.position.x -= block.side_length
+                elif event.key == pygame.K_d:
+                    for block in self.blocks:
+                        block.position.x += block.side_length
+
+    def draw(self, surf: pygame.Surface) -> None:
+        ...
 class Game:
 
     def __init__(self):
         self.bm: BlockManager = BlockManager()
-        self.t: Tetrominoe = Tetrominoe()
+        self.t: Tetrominoe = Tetrominoe(self.bm)
 
     def update(self, delta: int):
         self.bm.update(delta)
