@@ -1,7 +1,7 @@
 import pygame
 pygame.init()
 
-SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21
+SCREEN_WIDTH, SCREEN_HEIGHT = 40 * 12, 40 * 21
 dimensions = (SCREEN_WIDTH, SCREEN_HEIGHT)
 screen = pygame.display.set_mode(dimensions)
 
