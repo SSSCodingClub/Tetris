@@ -5,6 +5,7 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21
 dimensions: tuple = (SCREEN_WIDTH, SCREEN_HEIGHT)
 screen: pygame.Surface = pygame.display.set_mode(dimensions)
 
+
 pygame.display.set_caption("Tetris")
 # icon = pygame.image.load("logo.ico")
 # icon = pygame.transform.scale(icon, (32, 32))

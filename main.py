@@ -4,6 +4,7 @@ from game import Game
 delta: int = 1000/fps
 is_running: bool = True
 
+
 scene: Game = Game()
 
 while is_running:

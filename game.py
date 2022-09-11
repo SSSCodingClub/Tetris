@@ -57,7 +57,7 @@ class BlockManager:
             self.time -= self.gravity_time
             for block in self.blocks:
                 block.move_y(self.blocks)
-        
+
 
     def draw(self, surf: pygame.Surface):
         for block in self.blocks:
@@ -72,6 +72,7 @@ class Game:
     def update(self, delta: int):
         self.bm.update(delta)
         self.t.update(delta)
+
 
     def draw(self, surf: pygame.Surface):
         surf.fill(Colour.BLACK)
