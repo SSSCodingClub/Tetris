@@ -72,6 +72,7 @@ class BlockManager:
             if not block.falling:
                 grid[int(block.position.y / Block.side_length)][int(block.position.x / Block.side_length)] = block
 
+        score_to_be_added = 0
         for n, layer in enumerate(grid):
             x_counts = 0
             for i in layer:
@@ -83,6 +84,8 @@ class BlockManager:
                         if i in self.blocks:
                             self.blocks.remove(i)
                 grid[n] = [None for _ in range(12)]
+                score_to_be_added += 1
+
 
         # for i in grid:
         #     for j in i:
@@ -91,6 +94,7 @@ class BlockManager:
         #         else:
         #             print(" ", end=" ")
         #     print()
+        return score_to_be_added
 
     def draw(self, surf: pygame.Surface):
         for block in self.blocks:
@@ -126,7 +130,6 @@ class Tetrominoe:
         self.speed_modifier = 1
         self.just_spawned = True
 
-
     def update(self, delta: int) -> bool:
         if self.falling:
             return self.move(delta)
@@ -155,7 +158,6 @@ class Tetrominoe:
             # if event.type == pygame.KEYUP:
             #     if event.key == pygame.K_s:
             #         self.speed_modifier = 1
-
 
         self.time += delta * self.speed_modifier
         if self.time >= self.gravity_time:
@@ -195,10 +197,8 @@ class TetrominoeManager:
         else:
             self.t.speed_modifier = 1
 
-        if self.t.update(delta): # if collides with block after just spawning
+        if self.t.update(delta):  # if collides with block after just spawning
             print('you lose!')
-
-
 
         if not self.t.falling:
             if self.delay >= self.delay_time:
@@ -210,15 +210,20 @@ class TetrominoeManager:
     def reset_tetrominoe(self):
         self.t = Tetrominoe(self.bm)
 
+
 class Game:
 
     def __init__(self):
         self.bm: BlockManager = BlockManager()
         self.tm: TetrominoeManager = TetrominoeManager(self.bm)
 
+        self.score = 0
+
     def update(self, delta: int):
         self.tm.update(delta)
-        self.bm.update(delta)
+        self.score += self.bm.update(delta)
+
+        # print(self.score)
 
     def draw(self, surf: pygame.Surface):
         surf.fill(Colour.BLACK)
