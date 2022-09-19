@@ -12,7 +12,7 @@ class Block:
         self.falling = True
 
     def check_y(self, block_list):  # Note for later, add type annotation
-        if self.position.y + self.side_length >= SCREEN_HEIGHT:
+        if self.position.y + self.side_length >= SCREEN_HEIGHT -Block.side_length:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
         for block in block_list:
@@ -24,11 +24,11 @@ class Block:
 
     def check_x(self, direction, block_list):
         if direction > 0:  # 1 for right
-            if self.position.x + self.side_length >= SCREEN_WIDTH:
+            if self.position.x + self.side_length >= SCREEN_WIDTH - Block.side_length:
                 # self.position.x = SCREEN_WIDTH - self.side_length
                 return False
         else:  # -1 for left
-            if self.position.x <= 0:
+            if self.position.x <= Block.side_length:#this is the wall at the sides
                 # self.position.x = 0
                 return False
 
@@ -78,13 +78,24 @@ class BlockManager:
             for i in layer:
                 if isinstance(i, Block):
                     x_counts += 1
-            if x_counts >= 12:
+            if x_counts >= 10:
                 for i in layer:
                     if isinstance(i, Block):
                         if i in self.blocks:
                             self.blocks.remove(i)
                 grid[n] = [None for _ in range(12)]
                 score_to_be_added += 1
+
+                counter = 0
+                # move all blocks before down
+                for m, l in enumerate(grid[n::]):
+                    for k, j in enumerate(l):
+                        if isinstance(j, Block): # maybe make check so that it doesnt go out
+                            counter += 1
+                #             j.position.y += Block.side_length
+                #             grid[m][k + 1] = j
+                #             grid[m][k] = None
+                print(counter)
 
 
         # for i in grid:
