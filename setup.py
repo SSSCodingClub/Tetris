@@ -2,7 +2,7 @@ import pygame
 import random
 pygame.init()
 
-SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 11
+SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21
 dimensions: tuple = (SCREEN_WIDTH, SCREEN_HEIGHT)
 screen: pygame.Surface = pygame.display.set_mode(dimensions)
 

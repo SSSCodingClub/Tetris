@@ -1,42 +1,40 @@
 from mimetypes import init
 from typing import Tuple
 from setup import *
-#tetrominoes fun
-
 
 
 class Block:
     side_length: int = 30
 
-    def __init__(self, pos: Tuple, colour:Tuple):
+    def __init__(self, pos: Tuple, colour: Tuple):
         self.position: pygame.Vector2 = pygame.Vector2(pos)
-        self.colour =  colour
+        self.colour = colour
         self.falling = True
 
-    def check_y(self, block_list): # Note for later, add type annotation
+    def check_y(self, block_list):  # Note for later, add type annotation
         if self.position.y + self.side_length >= SCREEN_HEIGHT:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
         for block in block_list:
             if block is not self:
-                if self.get_rect(dy = self.side_length).colliderect(block.get_rect()):
+                if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
                     # self.position.y = block.position.y - self.side_length
                     return False
         return True
 
     def check_x(self, direction, block_list):
-        if direction > 0: # 1 for right
+        if direction > 0:  # 1 for right
             if self.position.x + self.side_length >= SCREEN_WIDTH:
                 # self.position.x = SCREEN_WIDTH - self.side_length
                 return False
-        else: # -1 for left
+        else:  # -1 for left
             if self.position.x <= 0:
                 # self.position.x = 0
                 return False
 
         for block in block_list:
             if block is not self:
-                if self.get_rect(dx = self.side_length * direction).colliderect(block.get_rect()):
+                if self.get_rect(dx=self.side_length * direction).colliderect(block.get_rect()):
                     # self.position.x = block.position.x - self.side_length
                     return False
         return True
@@ -58,35 +56,41 @@ class BlockManager:
     def add_block(self, block):
         self.blocks.append(block)
 
+        self.sort_blocks()
+
+    def sort_blocks(self):  # sorts blocks from greatest y to least y
         def get_y(block: Block):
             return block.position.y
 
         self.blocks.sort(reverse=True, key=get_y)
 
     def update(self, delta: int):
-        layer = []
-        prev_y = None
-        for i,block in enumerate(self.blocks[::-1]):
+        # print('---------------------------------------------', len(self.blocks))
+        self.sort_blocks()
+        grid = [[None for i in range(12)] for i in range(21)]
+        for block in self.blocks:
             if not block.falling:
-                print(block)
-                if prev_y is None or prev_y != block.position.y:
-                    layer = []
-                    print("Next layer")
-                prev_y = block.position.y
+                grid[int(block.position.y / Block.side_length)][int(block.position.x / Block.side_length)] = block
 
-                layer.append(block)
+        for n, layer in enumerate(grid):
+            x_counts = 0
+            for i in layer:
+                if isinstance(i, Block):
+                    x_counts += 1
+            if x_counts >= 12:
+                for i in layer:
+                    if isinstance(i, Block):
+                        if i in self.blocks:
+                            self.blocks.remove(i)
+                grid[n] = [None for _ in range(12)]
 
-                if len(layer) >= 5: # 10 x 20 is size of playing field
-                    print('remove!')
-                    for b in layer:
-                        if b in self.blocks:
-                            del self.blocks[self.blocks.index(b)]
-
-                    # for b in self.blocks[::i]:
-                    #     b.position.y += Block.side_length
-                
-
-            
+        # for i in grid:
+        #     for j in i:
+        #         if isinstance(j, Block):
+        #             print("x", end=" ")
+        #         else:
+        #             print(" ", end=" ")
+        #     print()
 
     def draw(self, surf: pygame.Surface):
         for block in self.blocks:
@@ -96,7 +100,7 @@ class BlockManager:
 class Tetrominoe:
     gravity_time: int = 250
 
-    shape: list[Tuple] = [(1,1), (0,1),  (0,0), (1,0)]
+    shape: list[Tuple] = [(1, 1), (0, 1), (0, 0), (1, 0)]
 
     colours = [Colour.RED, Colour.PURPLE, Colour.BLUE, Colour.AQUA, Colour.ORANGE, Colour.YELLOW, Colour.GREEN]
 
@@ -106,23 +110,22 @@ class Tetrominoe:
         colour = random.choice(self.colours)
 
         for coords in self.shape:
-            x,y = coords
+            x, y = coords
             self.blocks.append(Block((x * Block.side_length, y * Block.side_length), colour))
 
         self.other_blocks = bm.blocks.copy()
 
         for b in self.blocks:
             bm.add_block(b)
-        
+
         self.time: int = 0
-        self.has_fallen: bool = False
+        self.falling: bool = True
 
         self.bm = bm
 
     def update(self, delta: int) -> None:
-        self.move(delta)
-        if self.has_fallen:
-            self.__init__(self.bm)
+        if self.falling:
+            self.move(delta)
 
     def move(self, delta) -> None:
         for event in pygame.event.get(pygame.KEYDOWN):
@@ -155,25 +158,42 @@ class Tetrominoe:
                 for block in self.blocks:
                     block.position.y += block.side_length
             else:
-                self.has_fallen = True
+                self.falling = False
                 for block in self.blocks:
                     block.falling = False
 
     def rotate(self):
         ...
 
-    def draw(self, surf: pygame.Surface) -> None:
-        ...
-        
+
+class TetrominoeManager:
+    delay_time = 500
+
+    def __init__(self, block_manager):
+        self.t: Tetrominoe = Tetrominoe(block_manager)
+        self.bm = block_manager
+        self.delay = 0
+
+    def update(self, delta: int):
+        self.t.update(delta)
+
+        if not self.t.falling:
+            if self.delay >= self.delay_time:
+                self.t = Tetrominoe(self.bm)
+                self.delay = 0
+
+            self.delay += delta
+
+
 class Game:
 
     def __init__(self):
         self.bm: BlockManager = BlockManager()
-        self.t: Tetrominoe = Tetrominoe(self.bm)
+        self.tm: TetrominoeManager = TetrominoeManager(self.bm)
 
     def update(self, delta: int):
+        self.tm.update(delta)
         self.bm.update(delta)
-        self.t.update(delta)
 
     def draw(self, surf: pygame.Surface):
         surf.fill(Colour.BLACK)
