@@ -111,7 +111,7 @@ class Tetrominoe:
 
         for coords in self.shape:
             x, y = coords
-            self.blocks.append(Block((x * Block.side_length, y * Block.side_length), colour))
+            self.blocks.append(Block(((x + 5) * Block.side_length, y * Block.side_length), colour))
 
         self.other_blocks = bm.blocks.copy()
 
@@ -123,12 +123,16 @@ class Tetrominoe:
 
         self.bm = bm
 
-    def update(self, delta: int) -> None:
-        if self.falling:
-            self.move(delta)
+        self.speed_modifier = 1
+        self.just_spawned = True
 
-    def move(self, delta) -> None:
-        for event in pygame.event.get(pygame.KEYDOWN):
+
+    def update(self, delta: int) -> bool:
+        if self.falling:
+            return self.move(delta)
+
+    def move(self, delta) -> bool:
+        for event in pygame.event.get((pygame.KEYDOWN, pygame.KEYUP)):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
                     can_move = True
@@ -146,8 +150,14 @@ class Tetrominoe:
                     if can_move:
                         for block in self.blocks:
                             block.position.x += block.side_length
+            #     elif event.key == pygame.K_s:
+            #         self.speed_modifier = 5
+            # if event.type == pygame.KEYUP:
+            #     if event.key == pygame.K_s:
+            #         self.speed_modifier = 1
 
-        self.time += delta
+
+        self.time += delta * self.speed_modifier
         if self.time >= self.gravity_time:
             self.time -= self.gravity_time
             can_move = True
@@ -155,12 +165,17 @@ class Tetrominoe:
                 if not block.check_y(self.other_blocks):
                     can_move = False
             if can_move:
+                self.just_spawned = False
                 for block in self.blocks:
                     block.position.y += block.side_length
             else:
+                if self.just_spawned:
+                    return True
+
                 self.falling = False
                 for block in self.blocks:
                     block.falling = False
+        return False
 
     def rotate(self):
         ...
@@ -175,15 +190,25 @@ class TetrominoeManager:
         self.delay = 0
 
     def update(self, delta: int):
-        self.t.update(delta)
+        if pygame.key.get_pressed()[pygame.K_s]:
+            self.t.speed_modifier = 5
+        else:
+            self.t.speed_modifier = 1
+
+        if self.t.update(delta): # if collides with block after just spawning
+            print('you lose!')
+
+
 
         if not self.t.falling:
             if self.delay >= self.delay_time:
-                self.t = Tetrominoe(self.bm)
+                self.reset_tetrominoe()
                 self.delay = 0
 
             self.delay += delta
 
+    def reset_tetrominoe(self):
+        self.t = Tetrominoe(self.bm)
 
 class Game:
 
