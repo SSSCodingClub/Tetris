@@ -186,16 +186,17 @@ class BlockManager:
 
 class Tetrominoe:
     gravity_time: int = 250
+    # https://tetris.fandom.com/wiki/Tetromino refer to this for names
+    shapes: dict = {
+        "O":((1, 1), (0, 1), (0, 0), (1, 0)),
+        "I":((-1, 0), (0, 0), (1, 0), (2, 0)),
+        "J":((0, 1), (-1, 1), (1, 1), (-1, 0)),
+        "L":((0, 1), (-1, 1), (1, 1), (1, 0)),
+        "S":((-1, 1), (0, 1), (0, 0), (1, 0)),
+        "T":((-1, 1), (0, 1), (1, 1), (0, 0)),
+        "Z":((0, 1), (1, 1), (-1, 0), (0, 0))
+    }
 
-    shape: list[Tuple] = [
-        ((1, 1), (0, 1), (0, 0), (1, 0)),
-        ((-1, 0), (0, 0), (1, 0), (2, 0)),
-        ((0, 1), (-1, 1), (1, 1), (-1, 0)),
-        ((0, 1), (-1, 1), (1, 1), (1, 0)),
-        ((-1, 1), (0, 1), (0, 0), (1, 0)),
-        ((-1, 1), (0, 1), (1, 1), (0, 0)),
-        ((0, 1), (1, 1), (-1, 0), (0, 0))
-    ]
 
     colours = [Colour.RED, Colour.PURPLE, Colour.BLUE, Colour.AQUA, Colour.ORANGE, Colour.YELLOW, Colour.GREEN]
 
@@ -204,8 +205,8 @@ class Tetrominoe:
             self.blocks = []
 
             colour = random.choice(self.colours)
-
-            for coords in random.choice(self.shape):
+            self.shape = random.choice(list(self.shapes.keys()))
+            for coords in self.shapes[self.shape]:
                 x, y = coords
                 self.blocks.append(Block(((x + 5) * Block.side_length, y * Block.side_length), colour))
 
@@ -313,6 +314,7 @@ class TetrominoeManager:
         self.t = Tetrominoe(self.bm)
 
     def rotate_tetrominoe(self, direction):
+        # refer to https://tetris.wiki/Super_Rotation_System
         # 1 2 3
         # 4 5 6
         # 7 8 9
@@ -320,6 +322,8 @@ class TetrominoeManager:
         # 7 4 1
         # 8 5 2
         # 9 6 3
+
+
         if direction > 0:
             pass
 
