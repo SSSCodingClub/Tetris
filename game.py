@@ -69,7 +69,8 @@ class BlockManager:
 
         for i in self.falling_bits:
             i.update(delta)
-
+            if not i.falling:
+                self.falling_bits.remove(i)
         # print('---------------------------------------------', len(self.blocks))
         self.sort_blocks()
         grid = [[None for i in range(12)] for i in range(21)]
@@ -139,37 +140,38 @@ class BlockManager:
         #                 print(" ", end=" ")
         #         print()
         # temp = []
-        def dfs(x,y, current_t):
+        def dfs(x, y, current_t):
             if grid[y][x] in seen:
                 return
             else:
                 seen.add(grid[y][x])
-            if x+1 < 12 and isinstance(grid[y][x+1], Block):
-                current_t.append(grid[y][x+1])
+            if x + 1 < 12 and isinstance(grid[y][x + 1], Block):
+                current_t.append(grid[y][x + 1])
                 # seen.add(grid[y][x+1])
                 # temp.append((y,x+1))
-                dfs(x+1, y, current_t)
-            if x-1 > 0 and isinstance(grid[y][x-1], Block):
-                current_t.append(grid[y][x-1])
+                dfs(x + 1, y, current_t)
+            if x - 1 > 0 and isinstance(grid[y][x - 1], Block):
+                current_t.append(grid[y][x - 1])
                 # seen.add(grid[y][x-1])
                 # temp.append((y,x-1))
-                dfs(x-1, y, current_t)
-            if y+1 < 20 and isinstance(grid[y+1][x], Block):
-                current_t.append(grid[y+1][x])
+                dfs(x - 1, y, current_t)
+            if y + 1 < 20 and isinstance(grid[y + 1][x], Block):
+                current_t.append(grid[y + 1][x])
                 # seen.add(grid[y+1][x])
                 # temp.append((y+1,x))
-                dfs(x, y+1, current_t)
-            if y-1 > 0 and isinstance(grid[y-1][x], Block):
-                current_t.append(grid[y-1][x])
+                dfs(x, y + 1, current_t)
+            if y - 1 > 0 and isinstance(grid[y - 1][x], Block):
+                current_t.append(grid[y - 1][x])
                 # seen.add(grid[y-1][x])
                 # temp.append((y-1,x))
-                dfs(x, y-1, current_t)
-        for y,layer in enumerate(grid):
-            for x,i in enumerate(layer):
+                dfs(x, y - 1, current_t)
+
+        for y, layer in enumerate(grid):
+            for x, i in enumerate(layer):
                 if isinstance(i, Block) and i not in seen:
-                    current_tetrominoe = []
+                    current_tetrominoe = [i]
                     # temp = []
-                    dfs(x,y,current_tetrominoe)
+                    dfs(x, y, current_tetrominoe)
                     # g = grid[:]
                     # for a,b in temp:
                     #     g[a][b] = 'x'
@@ -185,7 +187,15 @@ class BlockManager:
 class Tetrominoe:
     gravity_time: int = 250
 
-    shape: list[Tuple] = [(1, 1), (0, 1), (0, 0), (1, 0)]
+    shape: list[Tuple] = [
+        ((1, 1), (0, 1), (0, 0), (1, 0)),
+        ((-1, 0), (0, 0), (1, 0), (2, 0)),
+        ((0, 1), (-1, 1), (1, 1), (-1, 0)),
+        ((0, 1), (-1, 1), (1, 1), (1, 0)),
+        ((-1, 1), (0, 1), (0, 0), (1, 0)),
+        ((-1, 1), (0, 1), (1, 1), (0, 0)),
+        ((0, 1), (1, 1), (-1, 0), (0, 0))
+    ]
 
     colours = [Colour.RED, Colour.PURPLE, Colour.BLUE, Colour.AQUA, Colour.ORANGE, Colour.YELLOW, Colour.GREEN]
 
@@ -195,7 +205,7 @@ class Tetrominoe:
 
             colour = random.choice(self.colours)
 
-            for coords in self.shape:
+            for coords in random.choice(self.shape):
                 x, y = coords
                 self.blocks.append(Block(((x + 5) * Block.side_length, y * Block.side_length), colour))
 
@@ -207,6 +217,7 @@ class Tetrominoe:
             self.just_spawned = True
         else:
             self.blocks = list(dict.fromkeys(blocks.copy()))
+
             def get_y(block: Block):
                 return block.position.y
 
@@ -216,7 +227,6 @@ class Tetrominoe:
                 if b not in self.blocks:
                     self.other_blocks.append(b)
             self.just_spawned = False
-
 
         self.time: int = 0
         self.falling: bool = True
@@ -301,6 +311,17 @@ class TetrominoeManager:
 
     def reset_tetrominoe(self):
         self.t = Tetrominoe(self.bm)
+
+    def rotate_tetrominoe(self, direction):
+        # 1 2 3
+        # 4 5 6
+        # 7 8 9
+        # rotate
+        # 7 4 1
+        # 8 5 2
+        # 9 6 3
+        if direction > 0:
+            pass
 
 
 class Game:
