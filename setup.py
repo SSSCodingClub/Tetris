@@ -1,5 +1,6 @@
 import pygame
 import random
+from copy import deepcopy
 pygame.init()
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21

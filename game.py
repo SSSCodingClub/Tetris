@@ -1,5 +1,8 @@
 from mimetypes import init
 from typing import Tuple
+
+import pygame.draw
+
 from setup import *
 
 
@@ -188,15 +191,14 @@ class Tetrominoe:
     gravity_time: int = 250
     # https://tetris.fandom.com/wiki/Tetromino refer to this for names
     shapes: dict = {
-        "O":((1, 1), (0, 1), (0, 0), (1, 0)),
-        "I":((-1, 0), (0, 0), (1, 0), (2, 0)),
-        "J":((0, 1), (-1, 1), (1, 1), (-1, 0)),
-        "L":((0, 1), (-1, 1), (1, 1), (1, 0)),
-        "S":((-1, 1), (0, 1), (0, 0), (1, 0)),
-        "T":((-1, 1), (0, 1), (1, 1), (0, 0)),
-        "Z":((0, 1), (1, 1), (-1, 0), (0, 0))
+        "O": ((1, 1), (0, 1), (0, 0), (1, 0)),
+        "I": ((-1, 0), (0, 0), (1, 0), (2, 0)),
+        "J": ((0, 1), (-1, 1), (1, 1), (-1, 0)),
+        "L": ((0, 1), (-1, 1), (1, 1), (1, 0)),
+        "S": ((-1, 1), (0, 1), (0, 0), (1, 0)),
+        "T": ((-1, 1), (0, 1), (1, 1), (0, 0)),
+        "Z": ((0, 1), (1, 1), (-1, 0), (0, 0))
     }
-
 
     colours = [Colour.RED, Colour.PURPLE, Colour.BLUE, Colour.AQUA, Colour.ORANGE, Colour.YELLOW, Colour.GREEN]
 
@@ -295,6 +297,8 @@ class TetrominoeManager:
                         if can_move:
                             for block in self.t.blocks:
                                 block.position.x += block.side_length
+                    elif event.key == pygame.K_r:
+                        self.rotate_tetrominoe(1)
                 #     elif event.key == pygame.K_s:
                 #         self.speed_modifier = 5
                 # if event.type == pygame.KEYUP:
@@ -314,6 +318,16 @@ class TetrominoeManager:
         self.t = Tetrominoe(self.bm)
 
     def rotate_tetrominoe(self, direction):
+        def print_grid(g):
+
+            for i in g:
+                for j in i:
+                    if j == 1:
+                        print("x", end=" ")
+                    else:
+                        print("_", end=" ")
+                print()
+
         # refer to https://tetris.wiki/Super_Rotation_System
         # 1 2 3
         # 4 5 6
@@ -322,10 +336,61 @@ class TetrominoeManager:
         # 7 4 1
         # 8 5 2
         # 9 6 3
+        if self.t.shape == "O":
+            return
+        elif self.t.shape != "I":
+            grid = [[0, 0, 0],
+                    [0, 0, 0],
+                    [0, 0, 0]]  # 0 for no block, 1 for block
+            rotated_grid = deepcopy(grid)
+
+            for x, y in self.t.shapes[self.t.shape]:
+                grid[y][x + 1] = 1
+        else:
+            grid = [[0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]]  # 0 for no block, 1 for block
+            rotated_grid = deepcopy(grid)
+            for x, y in self.t.shapes[self.t.shape]:
+                grid[y+1][x + 1] = 1
+
+
+
+
 
 
         if direction > 0:
-            pass
+            for i in range(len(grid[0])):
+                for j in range(len(grid)):
+                    rotated_grid[i][j] = grid[j][i]
+                rotated_grid[i].reverse()
+
+        print_grid(rotated_grid)
+
+        block_x = []
+        block_y = []
+        for i in self.t.blocks:
+            block_x.append(i.position.x)
+            block_y.append(i.position.y)
+        # block_x.sort()
+        # block_y.sort()
+        # mid_x = (max(block_x) - min(block_x))//2 + min(block_x)
+        # mid_y = (max(block_y) - min(block_y))//2 + min(block_y)
+        mid_x = block_x[len(block_x) // 2]
+        mid_y = block_y[len(block_y)//2]
+        # print(mid_x, mid_y)
+        rotated_positions = []
+        for y, layer in enumerate(rotated_grid):
+            for x, val in enumerate(layer):
+                if val == 1:
+                    rotated_positions.append((mid_x + x * Block.side_length, mid_y + y * Block.side_length))
+
+        for pos, block in zip(rotated_positions, self.t.blocks):
+            # print(block.position, pos)
+            block.position = pygame.Vector2(pos)
+
+
 
 
 class Game:
@@ -344,4 +409,5 @@ class Game:
 
     def draw(self, surf: pygame.Surface):
         surf.fill(Colour.BLACK)
+        pygame.draw.rect(surf, Colour.GRAY,pygame.Rect(Block.side_length, 0,SCREEN_WIDTH- 2 * Block.side_length, SCREEN_HEIGHT-Block.side_length))
         self.bm.draw(surf)
