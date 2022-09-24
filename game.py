@@ -272,6 +272,7 @@ class TetrominoeManager:
         self.t: Tetrominoe = Tetrominoe(block_manager)
         self.bm = block_manager
         self.delay = 0
+        self.rotations = 0
 
     def update(self, delta: int):
         if pygame.key.get_pressed()[pygame.K_s]:
@@ -316,6 +317,7 @@ class TetrominoeManager:
 
     def reset_tetrominoe(self):
         self.t = Tetrominoe(self.bm)
+        self.rotations = 0
 
     def rotate_tetrominoe(self, direction):
         def print_grid(g):
@@ -342,7 +344,6 @@ class TetrominoeManager:
             grid = [[0, 0, 0],
                     [0, 0, 0],
                     [0, 0, 0]]  # 0 for no block, 1 for block
-            rotated_grid = deepcopy(grid)
 
             for x, y in self.t.shapes[self.t.shape]:
                 grid[y][x + 1] = 1
@@ -351,20 +352,24 @@ class TetrominoeManager:
                     [0, 0, 0, 0],
                     [0, 0, 0, 0],
                     [0, 0, 0, 0]]  # 0 for no block, 1 for block
-            rotated_grid = deepcopy(grid)
             for x, y in self.t.shapes[self.t.shape]:
-                grid[y+1][x + 1] = 1
+                grid[y + 1][x + 1] = 1
 
+        def rotate(g):
+            output = deepcopy(grid)
+            for i in range(len(g[0])):
+                for j in range(len(g)):
+                    output[i][j] = g[j][i]
+                output[i].reverse()
+            return output
 
+        rotated_grid = deepcopy(grid)
 
-
-
-
+        self.rotations += 1
+        self.rotations %= 4
         if direction > 0:
-            for i in range(len(grid[0])):
-                for j in range(len(grid)):
-                    rotated_grid[i][j] = grid[j][i]
-                rotated_grid[i].reverse()
+            for i in range(self.rotations):
+                rotated_grid = rotate(rotated_grid)
 
         print_grid(rotated_grid)
 
@@ -378,7 +383,7 @@ class TetrominoeManager:
         # mid_x = (max(block_x) - min(block_x))//2 + min(block_x)
         # mid_y = (max(block_y) - min(block_y))//2 + min(block_y)
         mid_x = block_x[len(block_x) // 2]
-        mid_y = block_y[len(block_y)//2]
+        mid_y = block_y[len(block_y) // 2]
         # print(mid_x, mid_y)
         rotated_positions = []
         for y, layer in enumerate(rotated_grid):
@@ -389,8 +394,6 @@ class TetrominoeManager:
         for pos, block in zip(rotated_positions, self.t.blocks):
             # print(block.position, pos)
             block.position = pygame.Vector2(pos)
-
-
 
 
 class Game:
@@ -409,5 +412,6 @@ class Game:
 
     def draw(self, surf: pygame.Surface):
         surf.fill(Colour.BLACK)
-        pygame.draw.rect(surf, Colour.GRAY,pygame.Rect(Block.side_length, 0,SCREEN_WIDTH- 2 * Block.side_length, SCREEN_HEIGHT-Block.side_length))
+        pygame.draw.rect(surf, Colour.GRAY, pygame.Rect(Block.side_length, 0, SCREEN_WIDTH - 2 * Block.side_length,
+                                                        SCREEN_HEIGHT - Block.side_length))
         self.bm.draw(surf)
