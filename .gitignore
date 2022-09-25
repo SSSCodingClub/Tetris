@@ -10,3 +10,4 @@ __pycache__/game.cpython-310.pyc
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/Tetris.iml
 .idea/.name
+*.pyc

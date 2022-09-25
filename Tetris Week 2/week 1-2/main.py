@@ -1,13 +1,12 @@
 from setup import *
 from game import Game
 
-is_running = True
+# delta: int = 1000/fps
+is_running: bool = True
 
-scene = Game()
+scene: Game = Game()
 
 while is_running:
-    screen.fill((0, 0, 0))
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             is_running = False
@@ -16,5 +15,6 @@ while is_running:
     scene.draw(screen)
 
     pygame.display.update()
+    # delta = clock.tick(fps)
 
 pygame.quit()
