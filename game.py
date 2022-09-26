@@ -168,7 +168,7 @@ class BlockManager:
                 # seen.add(grid[y-1][x])
                 # temp.append((y-1,x))
                 dfs(x, y - 1, current_t)
-
+        print()
         for y, layer in enumerate(grid):
             for x, i in enumerate(layer):
                 if isinstance(i, Block) and i not in seen:
@@ -181,6 +181,7 @@ class BlockManager:
                     # print_grid(g)
 
                     self.falling_bits.append(Tetrominoe(self, current_tetrominoe))
+                    print('a')
 
     def draw(self, surf: pygame.Surface):
         for block in self.blocks:
