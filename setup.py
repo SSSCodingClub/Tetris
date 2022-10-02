@@ -1,7 +1,9 @@
 import pygame
 import random
 from copy import deepcopy
+from pygame import mixer
 pygame.init()
+
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21
 dimensions: tuple = (SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -15,6 +17,10 @@ pygame.display.set_caption("Tetris")
 
 clock = pygame.time.Clock()
 fps = 60
+
+mixer.music.load('TetrisTheme.wav')
+mixer.music.set_volume(0.5)
+mixer.music.play(-1)
 
 
 class Colour:
