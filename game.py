@@ -148,6 +148,7 @@ class BlockManager:
                 return
             else:
                 seen.add(grid[y][x])
+
             if x + 1 < 12 and isinstance(grid[y][x + 1], Block):
                 current_t.append(grid[y][x + 1])
                 # seen.add(grid[y][x+1])
