@@ -1,3 +1,5 @@
+import pygame
+
 from setup import *
 from block import Tetrominoe, Block
 
@@ -9,7 +11,7 @@ class FakeTetrominoes:
 
     def __init__(self):
         self.blocks = []
-        for i in range(3):
+        for i in range(4):
             self.add_shape()
 
         self.time = 0
@@ -17,9 +19,9 @@ class FakeTetrominoes:
 
     def add_shape(self):
         colour = random.choice(self.colours)
-        self.shape = random.choice(list(self.shapes.keys()))
-        dx, dy = random.randint(1, 10), random.randint(-GRID_HEIGHT, -1)
-        for coords in self.shapes[self.shape]:
+        shape = random.choice(list(self.shapes.keys()))
+        dx, dy = random.randint(1, 9), random.randint(-GRID_HEIGHT*2, -1)
+        for coords in self.shapes[shape]:
             x, y = coords
             self.blocks.append(Block(((x + dx) * Block.side_length, (y + dy) * Block.side_length), colour))
 
@@ -70,3 +72,55 @@ class Title:
             self.subtitle.get_width() * (0.15 * math.sin(time.time() * 2) + 1.15),
             self.subtitle.get_height() * (0.15 * math.sin(time.time() * 2) + 1.15)))
         surf.blit(display_subtitle, display_subtitle.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
+
+class GameOver:
+    bold_font = pygame.font.Font("font/Silkscreen-Bold.ttf", 40)
+    regular_font = pygame.font.Font("font/Silkscreen-Regular.ttf", 12)
+    regular_font2 = pygame.font.Font("font/Silkscreen-Regular.ttf", 20)
+    title = bold_font.render("GameOver!", True, Colour.RED)
+    subtitle = regular_font.render("Press any key to continue...", True, Colour.LIGHT_GRAY)
+
+    gameovercard = pygame.Surface(dimensions)
+    dark = pygame.Surface(dimensions)
+    dark.fill(Colour.DARK_GRAY)
+    dark.set_alpha(125)
+
+    def __init__(self, score):
+        self.score = score
+        self.score_text = self.regular_font2.render(f"Score:{self.score}", True, Colour.LIGHT_GRAY)
+        self.next_scene = None
+        self.saved_bg =False
+        self.bg = None
+        self.time= 0
+
+
+    def update(self, delta):
+        if self.time < 10000:
+            self.time += delta
+        if self.time > 2500:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                    self.next_scene = "Game"
+
+    def draw(self,surf):
+        if not self.saved_bg:
+            self.bg =surf.copy()
+            self.saved_bg = True
+
+        self.gameovercard.blit(self.bg, self.bg.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/2)))
+
+        # surf.blit(self.gameovercard, self.gameovercard.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/2)))
+        self.gameovercard.blit(self.dark,self.dark.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/2)))
+
+        self.gameovercard.blit(self.title, self.title.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT/3)))
+
+        self.gameovercard.blit(self.score_text, self.score_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT * 0.425)))
+
+        display_subtitle = pygame.transform.scale(self.subtitle, (
+            self.subtitle.get_width() * (0.15 * math.sin(time.time() * 2) + 1.15),
+            self.subtitle.get_height() * (0.15 * math.sin(time.time() * 2) + 1.15)))
+        self.gameovercard.blit(display_subtitle, display_subtitle.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
+
+        self.gameovercard.set_alpha(min(255,pow(0.99,-0.1 * (self.time-1250))))
+
+        surf.blit(self.gameovercard,self.gameovercard.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/2)))

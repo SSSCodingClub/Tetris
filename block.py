@@ -307,7 +307,7 @@ class TetrominoeManager:
                 #     if event.key == pygame.K_s:
                 #         self.speed_modifier = 1
         if self.t.update(delta):  # if collides with block after just spawning
-            print('you lose!')
+            return True
 
 
 
@@ -318,6 +318,7 @@ class TetrominoeManager:
                 self.delay = 0
 
             self.delay += delta
+        return False
 
     def reset_tetrominoe(self):
         self.t = Tetrominoe(self.bm)

@@ -1,6 +1,6 @@
 import pygame
 import random
-from copy import deepcopy
+from copy import deepcopy, copy
 from mimetypes import init
 from typing import Tuple
 from pygame import mixer
@@ -33,7 +33,7 @@ class Colour:
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
     GRAY = (127, 127, 127)
-    DARK_GRAY = (40, 40, 40)
+    DARK_GRAY = (60,60, 60)
     LIGHT_GRAY = (225, 225, 225)
     RED = (255, 17, 0)
     PURPLE = (157, 0, 255)
