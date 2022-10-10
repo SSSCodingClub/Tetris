@@ -1,9 +1,0 @@
-1. setup.py
-	import pygame, initialize, constants
-2. main.py
-	main game loop, background, update draw, events
-3. block.py
-	basic movement, rendering on screen
-4. game.py
-	game class
-
