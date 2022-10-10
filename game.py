@@ -1,20 +1,22 @@
 from setup import *
 from block import Block, BlockManager, Tetrominoe, TetrominoeManager
 
+
 class Walls:
     colour = Colour.DARK_GRAY
 
     def __init__(self):
         self.blocks = []
         for i in range(GRID_HEIGHT):
-            self.blocks.append(Block((0,i * Block.side_length),self.colour))
-            self.blocks.append(Block((SCREEN_WIDTH-Block.side_length,i * Block.side_length),self.colour))
-        for i in range(1,GRID_WIDTH):
-            self.blocks.append(Block((i * Block.side_length,SCREEN_HEIGHT-Block.side_length),self.colour))
+            self.blocks.append(Block((0, i * Block.side_length), self.colour))
+            self.blocks.append(Block((SCREEN_WIDTH - Block.side_length, i * Block.side_length), self.colour))
+        for i in range(1, GRID_WIDTH):
+            self.blocks.append(Block((i * Block.side_length, SCREEN_HEIGHT - Block.side_length), self.colour))
 
     def draw(self, surf):
         for block in self.blocks:
             block.draw(surf)
+
 
 class Game:
 
@@ -39,4 +41,5 @@ class Game:
         self.walls.draw(surf)
         # pygame.draw.rect(surf, Colour.GRAY, pygame.Rect(Block.side_length, 0, SCREEN_WIDTH - 2 * Block.side_length,
         #                                                 SCREEN_HEIGHT - Block.side_length))
+        self.tm.draw(surf)
         self.bm.draw(surf)

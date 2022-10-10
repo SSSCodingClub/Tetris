@@ -1,5 +1,6 @@
-from setup import *
+import pygame.draw
 
+from setup import *
 
 
 class Block:
@@ -9,7 +10,7 @@ class Block:
     def __init__(self, pos: Tuple, colour: Tuple):
         self.position: pygame.Vector2 = pygame.Vector2(pos)
         self.colour = colour
-        self.outline_colour = (max(self.colour[0]-25,0),max(self.colour[1]-25,0),max(self.colour[2]-25,0))
+        self.outline_colour = (max(self.colour[0] - 25, 0), max(self.colour[1] - 25, 0), max(self.colour[2] - 25, 0))
         self.falling = True
 
     def check_y(self, block_list):  # Note for later, add type annotation
@@ -40,13 +41,21 @@ class Block:
                     return False
         return True
 
-    def get_rect(self, dx=0, dy=0,side=side_length):
+    def get_rect(self, dx=0, dy=0, side=side_length):
         return pygame.Rect(self.position + pygame.Vector2(dx, dy), (side, side))
         # return pygame.Rect(self.position + pygame.Vector2(dx, dy), (self.side_length, self.side_length))
 
-    def draw(self, surf: pygame.Surface):
-        pygame.draw.rect(surf, self.outline_colour, self.get_rect())
-        pygame.draw.rect(surf, self.colour, self.get_rect(dx=self.bezel,dy=self.bezel,side=self.side_length-2 * self.bezel))
+    def draw(self, surf: pygame.Surface, wireframe=False):
+        if wireframe:
+            # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            pygame.draw.rect(surf, self.colour, self.get_rect())
+            pygame.draw.rect(surf, Colour.GRAY, self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
+            # output.set_alpha(128)
+            # surf.blit(output,(0,0))
+        else:
+            pygame.draw.rect(surf, self.outline_colour, self.get_rect())
+            pygame.draw.rect(surf, self.colour,
+                         self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
 
 
 class BlockManager:
@@ -169,6 +178,7 @@ class BlockManager:
                 # seen.add(grid[y-1][x])
                 # temp.append((y-1,x))
                 dfs(x, y - 1, current_t)
+
         print()
         for y, layer in enumerate(grid):
             for x, i in enumerate(layer):
@@ -187,6 +197,7 @@ class BlockManager:
     def draw(self, surf: pygame.Surface):
         for block in self.blocks:
             block.draw(surf)
+
 
 class Tetrominoe:
     gravity_time: int = 250
@@ -221,12 +232,14 @@ class Tetrominoe:
             self.just_spawned = True
         else:
             self.blocks = list(dict.fromkeys(blocks.copy()))
+            # self.blocks = blocks[:]
 
             def get_y(block: Block):
                 return block.position.y
 
             self.blocks.sort(reverse=True, key=get_y)
             self.other_blocks = []
+            # if bm is not None:
             for b in bm.blocks:
                 if b not in self.blocks:
                     self.other_blocks.append(b)
@@ -271,6 +284,8 @@ class TetrominoeManager:
 
     def __init__(self, block_manager):
         self.t: Tetrominoe = Tetrominoe(block_manager)
+        self.preview = Preview(self.t.blocks)
+
         self.bm = block_manager
         self.delay = 0
         self.rotations = 0
@@ -309,8 +324,7 @@ class TetrominoeManager:
         if self.t.update(delta):  # if collides with block after just spawning
             return True
 
-
-
+        self.preview.update(self.t.blocks, self.t.other_blocks)
 
         if not self.t.falling:
             if self.delay >= self.delay_time:
@@ -322,6 +336,7 @@ class TetrominoeManager:
 
     def reset_tetrominoe(self):
         self.t = Tetrominoe(self.bm)
+        self.preview = Preview(self.t.blocks)
         self.rotations = 0
 
     def rotate_tetrominoe(self, direction):
@@ -399,3 +414,41 @@ class TetrominoeManager:
         for pos, block in zip(rotated_positions, self.t.blocks):
             # print(block.position, pos)
             block.position = pygame.Vector2(pos)
+    def draw(self, surf):
+        if self.t.falling:
+            self.preview.draw(surf)
+
+
+class Preview:
+
+    def __init__(self, blocks):
+        self.blocks = deepcopy(blocks)
+    def check_y(self,block, block_list):  # Note for later, add type annotation
+        if block in block_list:
+            print('c')
+
+
+        if block.position.y + block.side_length >= SCREEN_HEIGHT - Block.side_length:
+            return False
+        for b in block_list:
+            if b is not self:
+                if block.get_rect(dy=block.side_length).colliderect(b.get_rect()):
+                    return False
+        return True
+    def update(self, blocks, otherblocks):
+        self.blocks = deepcopy(blocks)
+        other_blocks = deepcopy(otherblocks)
+        while True:
+            can_move = True
+            for block in self.blocks:
+                if not self.check_y(block, other_blocks):
+                    can_move = False
+            if can_move:
+                for block in self.blocks:
+                    block.position.y += block.side_length
+            else:
+                break
+
+    def draw(self, surf):
+        for block in self.blocks:
+            block.draw(surf, wireframe=True)

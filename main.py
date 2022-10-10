@@ -1,8 +1,6 @@
-import pygame.image
-
 from setup import *
 from game import Game
-from screens import Title,GameOver
+from screens import Title, GameOver
 
 delta: int = 1000 / fps
 is_running: bool = True
@@ -14,7 +12,6 @@ scenes = {
 }
 
 scene = Title()
-
 
 while is_running:
     if pygame.event.peek(pygame.QUIT):
