@@ -4,10 +4,14 @@ from copy import deepcopy
 from mimetypes import init
 from typing import Tuple
 from pygame import mixer
+import time
+import math
 pygame.init()
 
 
-SCREEN_WIDTH, SCREEN_HEIGHT = 30 * 12, 30 * 21
+GRID_WIDTH,GRID_HEIGHT = 12, 21
+
+SCREEN_WIDTH, SCREEN_HEIGHT = 30 * GRID_WIDTH, 30 * GRID_HEIGHT
 dimensions: tuple = (SCREEN_WIDTH, SCREEN_HEIGHT)
 screen: pygame.Surface = pygame.display.set_mode(dimensions)
 

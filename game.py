@@ -4,6 +4,7 @@ from block import Block, BlockManager, Tetrominoe, TetrominoeManager
 class Game:
 
     def __init__(self):
+        self.next_scene = None
         self.bm: BlockManager = BlockManager()
         self.tm: TetrominoeManager = TetrominoeManager(self.bm)
 
