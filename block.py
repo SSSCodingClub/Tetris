@@ -48,14 +48,15 @@ class Block:
     def draw(self, surf: pygame.Surface, wireframe=False):
         if wireframe:
             # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            pygame.draw.rect(surf, self.colour, self.get_rect())
-            pygame.draw.rect(surf, Colour.GRAY, self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
+            pygame.draw.rect(surf, self.colour, self.get_rect(),self.bezel)
+            # pygame.draw.rect(surf, Colour.GRAY,
+            #                  self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
             # output.set_alpha(128)
             # surf.blit(output,(0,0))
         else:
             pygame.draw.rect(surf, self.outline_colour, self.get_rect())
             pygame.draw.rect(surf, self.colour,
-                         self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
+                             self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
 
 
 class BlockManager:
@@ -212,7 +213,23 @@ class Tetrominoe:
         "Z": ((0, 1), (1, 1), (-1, 0), (0, 0))
     }
 
+    rotation_centers = {
+        "O": (0, 0),  # does not appear to rotate
+        "I": (-1,-1),
+        "J": (-1, 0),
+        "L": (-1, 0),
+        "S": (-1, 0),
+        "T": (-1, 0),
+        "Z": (-1, 0)
+
+    }
+
     colours = [Colour.RED, Colour.PURPLE, Colour.BLUE, Colour.AQUA, Colour.ORANGE, Colour.YELLOW, Colour.GREEN]
+
+    # def draw(self, surf):
+    #     print(self.rotation_center, self.blocks[0].position)
+    #     r = pygame.Rect(self.rotation_center, (Block.side_length, Block.side_length))
+    #     pygame.draw.rect(surf,(255,255,255),r)
 
     def __init__(self, bm: BlockManager, blocks=None) -> None:
         if blocks is None:
@@ -220,9 +237,13 @@ class Tetrominoe:
 
             colour = random.choice(self.colours)
             self.shape = random.choice(list(self.shapes.keys()))
+            # self.shape = "I"
             for coords in self.shapes[self.shape]:
                 x, y = coords
                 self.blocks.append(Block(((x + 5) * Block.side_length, y * Block.side_length), colour))
+
+            self.rotation_center = pygame.Vector2(((self.rotation_centers[self.shape][0] + 5) * Block.side_length,
+                                                   self.rotation_centers[self.shape][1] * Block.side_length))
 
             self.other_blocks = bm.blocks.copy()
 
@@ -232,8 +253,10 @@ class Tetrominoe:
             self.just_spawned = True
         else:
             self.blocks = list(dict.fromkeys(blocks.copy()))
+
             # self.blocks = blocks[:]
 
+            self.rotation_center = (0,0)
             def get_y(block: Block):
                 return block.position.y
 
@@ -269,6 +292,7 @@ class Tetrominoe:
                 self.just_spawned = False
                 for block in self.blocks:
                     block.position.y += block.side_length
+                self.rotation_center.y += Block.side_length
             else:
                 if self.just_spawned:
                     return True
@@ -306,6 +330,7 @@ class TetrominoeManager:
                         if can_move:
                             for block in self.t.blocks:
                                 block.position.x -= block.side_length
+                            self.t.rotation_center.x -= Block.side_length
                     elif event.key == pygame.K_d:
                         can_move = True
                         for block in self.t.blocks:
@@ -314,6 +339,8 @@ class TetrominoeManager:
                         if can_move:
                             for block in self.t.blocks:
                                 block.position.x += block.side_length
+                            self.t.rotation_center.x += Block.side_length
+
                     elif event.key == pygame.K_r:
                         self.rotate_tetrominoe(1)
                 #     elif event.key == pygame.K_s:
@@ -393,40 +420,33 @@ class TetrominoeManager:
 
         print_grid(rotated_grid)
 
-        block_x = []
-        block_y = []
-        for i in self.t.blocks:
-            block_x.append(i.position.x)
-            block_y.append(i.position.y)
-        # block_x.sort()
-        # block_y.sort()
-        # mid_x = (max(block_x) - min(block_x))//2 + min(block_x)
-        # mid_y = (max(block_y) - min(block_y))//2 + min(block_y)
-        mid_x = block_x[len(block_x) // 2]
-        mid_y = block_y[len(block_y) // 2]
-        # print(mid_x, mid_y)
+
         rotated_positions = []
         for y, layer in enumerate(rotated_grid):
             for x, val in enumerate(layer):
                 if val == 1:
-                    rotated_positions.append((mid_x + x * Block.side_length, mid_y + y * Block.side_length))
+                    rotated_positions.append((self.t.rotation_center.x + x * Block.side_length, self.t.rotation_center.y + y * Block.side_length))
+        print(self.t.rotation_center, rotated_positions)
+
 
         for pos, block in zip(rotated_positions, self.t.blocks):
             # print(block.position, pos)
             block.position = pygame.Vector2(pos)
+
     def draw(self, surf):
         if self.t.falling:
             self.preview.draw(surf)
+        # self.t.draw(surf)
 
 
 class Preview:
 
     def __init__(self, blocks):
         self.blocks = deepcopy(blocks)
-    def check_y(self,block, block_list):  # Note for later, add type annotation
+
+    def check_y(self, block, block_list):  # Note for later, add type annotation
         if block in block_list:
             print('c')
-
 
         if block.position.y + block.side_length >= SCREEN_HEIGHT - Block.side_length:
             return False
@@ -435,6 +455,7 @@ class Preview:
                 if block.get_rect(dy=block.side_length).colliderect(b.get_rect()):
                     return False
         return True
+
     def update(self, blocks, otherblocks):
         self.blocks = deepcopy(blocks)
         other_blocks = deepcopy(otherblocks)

@@ -11,3 +11,4 @@ __pycache__/game.cpython-310.pyc
 .idea/Tetris.iml
 .idea/.name
 *.pyc
+*.iml
