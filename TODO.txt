@@ -1,8 +1,9 @@
 TODO
 sounds effects (block on ground, game over, line clear - make arcade sounding)
 particle effects (block on ground, line clear)
-fix bugs with line clear
+fix bugs with line clear (watch video in coding club server)
 speed up with every line clear
 score counter ( maybe )
 more time to rotate ( maybe )
 detect if moved before lose
+

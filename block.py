@@ -15,10 +15,12 @@ class Block:
 
     def is_colliding(self, block_list):
         if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
-                 self.side_length <= self.position.y <= SCREEN_HEIGHT - self.side_length * 2)):  # to account for block + wall
+                 0 <= self.position.y <= SCREEN_HEIGHT - self.side_length * 2)):  # to account for block + wall
             return True
 
         for block in block_list:
+            if block is self:
+                continue
             if block.get_rect().colliderect(self.get_rect()):
                 return True
         return False
@@ -351,16 +353,28 @@ class TetrominoeManager:
         self.paused = False
 
     def update(self, delta: int):
+        if self.t.just_spawned:
+            collided = False
+            for block in self.t.blocks:
+                if block.is_colliding(self.t.other_blocks) or not block.check_y(self.t.other_blocks):
+                    collided = True
+            if collided:
+                self.t.falling = False
+                for block in self.t.blocks:
+                    block.falling = False
+                return True
+
+
         self.paused = False
         moved_sideways = False
-        if pygame.key.get_pressed()[pygame.K_s]:
+        if pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_DOWN]:
             self.t.speed_modifier = 5
         else:
             self.t.speed_modifier = 1
         if self.t.falling:
             for event in pygame.event.get((pygame.KEYDOWN, pygame.KEYUP)):
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_a:
+                    if event.key == pygame.K_a or event.key == pygame.K_LEFT:
                         can_move = True
                         for block in self.t.blocks:
                             if not block.check_x(-1, self.t.other_blocks):
@@ -370,7 +384,7 @@ class TetrominoeManager:
                                 block.position.x -= block.side_length
                             self.t.rotation_center.x -= Block.side_length
                             moved_sideways = True
-                    elif event.key == pygame.K_d:
+                    elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                         can_move = True
                         for block in self.t.blocks:
                             if not block.check_x(1, self.t.other_blocks):
@@ -380,7 +394,7 @@ class TetrominoeManager:
                                 block.position.x += block.side_length
                             self.t.rotation_center.x += Block.side_length
                             moved_sideways = True
-                    elif event.key == pygame.K_r:
+                    elif event.key == pygame.K_r or event.key == pygame.K_w or event.key == pygame.K_UP:
                         self.rotate_tetrominoe(1)
                     elif event.key == pygame.K_SPACE:
                         self.t.just_spawned = False
@@ -396,7 +410,7 @@ class TetrominoeManager:
                 # if event.type == pygame.KEYUP:
                 #     if event.key == pygame.K_s:
                 #         self.speed_modifier = 1
-        if self.t.update(delta) and not moved_sideways:  # if collides with block after just spawning
+        if self.t.update(delta):  # if collides with block after just spawning
             return True
 
         self.preview.update(self.t.blocks, self.t.other_blocks)
