@@ -23,14 +23,23 @@ class Tetromino:
                 GREEN
     ]
     
-    def __init__(self):
-        self.shape = self.shapes["L"]
+    def __init__(self, global_blocks):
+        self.shape = random.choice(list(self.shapes.values()))
         self.colour = random.choice(self.colours)
         self.blocks = []
         for x,y in self.shape:
             self.blocks.append(Block(((6 + x) * Block.side_length, y * Block.side_length), self.colour))
         
+        self.other_blocks = global_blocks[:] # global_blocks.copy
+
+        for b in self.blocks:
+            global_blocks.append(b)
+
+
         self.time = 0
+        self.has_fallen = False
+
+
 
     def update(self, delta):
         self.time += delta
@@ -38,20 +47,18 @@ class Tetromino:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
-                    print("right")
                     can_move = True
                     for block in self.blocks:
-                        if not block.can_move_right():
+                        if not block.can_move_right(self.other_blocks):
                             can_move = False
                     if can_move:
                         for block in self.blocks:
                             block.position.x += block.side_length
                             
                 elif event.key == pygame.K_a:
-                    print('left')
                     can_move = True
                     for block in self.blocks:
-                        if not block.can_move_left():
+                        if not block.can_move_left(self.other_blocks):
                             can_move = False
                     if can_move:
                         for block in self.blocks:
@@ -59,14 +66,25 @@ class Tetromino:
 
                 elif event.key == pygame.K_s:
                     print("speed up!!!")
+                    can_move = True
+                    for block in self.blocks:
+                        if not block.can_move_down(self.other_blocks):
+                            can_move = False
+                        if block.has_fallen: # == True:
+                            self.has_fallen = True
+                    if can_move:
+                        for block in self.blocks:
+                            block.move_down()
                 elif event.key == pygame.K_r:
                     print("rotate")
 
         if self.time >= self.gravity_time:
             can_move = True
             for block in self.blocks:
-                if not block.can_move_down():
+                if not block.can_move_down(self.other_blocks):
                     can_move = False
+                if block.has_fallen: # == True:
+                    self.has_fallen = True
             if can_move:
                 for block in self.blocks:
                     block.move_down()
