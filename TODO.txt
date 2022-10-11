@@ -2,3 +2,8 @@ TODO
 sounds effects (block on ground, game over, line clear - make arcade sounding)
 particle effects (block on ground, line clear)
 fix bugs with line clear
+space bar to drop tetromino
+speed up with every line clear
+score counter ( maybe )
+more time to rotate ( maybe )
+Pause so I can play during class

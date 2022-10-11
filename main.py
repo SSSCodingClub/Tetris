@@ -1,6 +1,8 @@
+import pygame.event
+
 from setup import *
 from game import Game
-from screens import Title, GameOver
+from screens import Title, GameOver, Pause
 
 delta: int = 1000 / fps
 is_running: bool = True
@@ -8,7 +10,8 @@ is_running: bool = True
 scenes = {
     "Title": Title,
     "Game": Game,
-    "GameOver": GameOver
+    "GameOver": GameOver,
+    "Pause":Pause
 }
 
 scene = Title()
@@ -19,6 +22,7 @@ while is_running:
 
     scene.update(delta)
     scene.draw(screen)
+
 
     if scene.next_scene is not None:
         if scene.next_scene == "GameOver" and isinstance(scene, Game):

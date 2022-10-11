@@ -124,3 +124,15 @@ class GameOver:
         self.gameovercard.set_alpha(min(255, pow(0.99, -0.1 * (self.time - 1250))))
 
         surf.blit(self.gameovercard, self.gameovercard.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
+
+class Pause:
+
+    def __init__(self):
+        self.next_scene = None
+        print("Paused.")
+
+    def update(self, delta):
+        pass
+
+    def draw(self, surf):
+        pass
