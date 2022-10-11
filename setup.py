@@ -16,9 +16,9 @@ dimensions: tuple = (SCREEN_WIDTH, SCREEN_HEIGHT)
 screen: pygame.Surface = pygame.display.set_mode(dimensions)
 
 pygame.display.set_caption("Tetris")
-# icon = pygame.image.load("logo.ico")
-# icon = pygame.transform.scale(icon, (32, 32))
-# pygame.display.set_icon(icon)
+icon = pygame.image.load("tetrislogo.png")
+icon = pygame.transform.scale(icon, (32, 32))
+pygame.display.set_icon(icon)
 
 clock = pygame.time.Clock()
 fps = 60

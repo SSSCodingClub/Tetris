@@ -95,10 +95,10 @@ class GameOver:
     def update(self, delta):
         if self.time < 10000:
             self.time += delta
-        if self.time > 3000:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                    self.next_scene = "Game"
+
+        for event in pygame.event.get():
+            if self.time > 4500 and (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
+                self.next_scene = "Game"
 
     def draw(self, surf):
         if not self.saved_bg:

@@ -48,15 +48,16 @@ class Block:
     def draw(self, surf: pygame.Surface, wireframe=False):
         if wireframe:
             # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            pygame.draw.rect(surf, self.colour, self.get_rect(),self.bezel)
+            pygame.draw.rect(surf, self.colour, self.get_rect(), self.bezel)
             # pygame.draw.rect(surf, Colour.GRAY,
             #                  self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
             # output.set_alpha(128)
             # surf.blit(output,(0,0))
         else:
-            pygame.draw.rect(surf, self.outline_colour, self.get_rect())
-            pygame.draw.rect(surf, self.colour,
-                             self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
+            pygame.draw.rect(surf, self.colour, self.get_rect())
+            pygame.draw.rect(surf, self.outline_colour, self.get_rect(), self.bezel)
+            # pygame.draw.rect(surf, self.colour,
+            #                  self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
 
 
 class BlockManager:
@@ -215,7 +216,7 @@ class Tetrominoe:
 
     rotation_centers = {
         "O": (0, 0),  # does not appear to rotate
-        "I": (-1,-1),
+        "I": (-1, -1),
         "J": (-1, 0),
         "L": (-1, 0),
         "S": (-1, 0),
@@ -256,7 +257,8 @@ class Tetrominoe:
 
             # self.blocks = blocks[:]
 
-            self.rotation_center = (0,0)
+            self.rotation_center = pygame.Vector2(0, 0)
+
             def get_y(block: Block):
                 return block.position.y
 
@@ -418,16 +420,14 @@ class TetrominoeManager:
             for i in range(self.rotations):
                 rotated_grid = rotate(rotated_grid)
 
-        print_grid(rotated_grid)
-
+        # print_grid(rotated_grid)
 
         rotated_positions = []
         for y, layer in enumerate(rotated_grid):
             for x, val in enumerate(layer):
                 if val == 1:
-                    rotated_positions.append((self.t.rotation_center.x + x * Block.side_length, self.t.rotation_center.y + y * Block.side_length))
-        print(self.t.rotation_center, rotated_positions)
-
+                    rotated_positions.append((self.t.rotation_center.x + x * Block.side_length,
+                                              self.t.rotation_center.y + y * Block.side_length))
 
         for pos, block in zip(rotated_positions, self.t.blocks):
             # print(block.position, pos)
