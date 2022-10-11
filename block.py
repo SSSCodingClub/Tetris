@@ -381,7 +381,7 @@ class TetrominoeManager:
                         for block,new in zip(self.t.blocks,self.preview.blocks):
                             block.position = new.position
                     elif event.key == pygame.K_ESCAPE:
-                        
+
                     # elif event.key == pygame.K_q: # world is not ready for counter clockwise rotations
                     #     self.rotate_tetrominoe(-1)
                 #     elif event.key == pygame.K_s:
