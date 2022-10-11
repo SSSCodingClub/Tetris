@@ -133,15 +133,35 @@ class Pause:
     text = regular_font.render("Paused",True,Colour.WHITE)
 
     def __init__(self):
-        pass
+        self.copied_bg = False
+        self.bg = None
+        self.unpaused = False
 
     def update(self, delta):
-        for event in pygame.event.get(pygame.KEYDOWN):
-            if event.key == pygame.K_ESCAPE:
+        self.unpaused = False
+        mixer.music.set_volume(0)
+        for event in pygame.event.get((pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN)):
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.copied_bg = False
+                    mixer.music.set_volume(0.25)
+
+                    self.unpaused = True
+                    return True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.copied_bg = False
+                self.unpaused = True
+                mixer.music.set_volume(0.25)
+
                 return True
         return False
 
 
     def draw(self, surf):
-        surf.blit(self.dark,(0,0))
-        surf.blit(self.text,self.text.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/3)))
+        if not self.unpaused:
+            if not self.copied_bg:
+                self.bg = surf.copy()
+                self.copied_bg = True
+            surf.blit(self.bg, (0,0))
+            surf.blit(self.dark,(0,0))
+            surf.blit(self.text,self.text.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/3)))

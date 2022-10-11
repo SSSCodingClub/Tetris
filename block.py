@@ -352,6 +352,7 @@ class TetrominoeManager:
 
     def update(self, delta: int):
         self.paused = False
+        moved_sideways = False
         if pygame.key.get_pressed()[pygame.K_s]:
             self.t.speed_modifier = 5
         else:
@@ -368,6 +369,7 @@ class TetrominoeManager:
                             for block in self.t.blocks:
                                 block.position.x -= block.side_length
                             self.t.rotation_center.x -= Block.side_length
+                            moved_sideways = True
                     elif event.key == pygame.K_d:
                         can_move = True
                         for block in self.t.blocks:
@@ -377,10 +379,11 @@ class TetrominoeManager:
                             for block in self.t.blocks:
                                 block.position.x += block.side_length
                             self.t.rotation_center.x += Block.side_length
-
+                            moved_sideways = True
                     elif event.key == pygame.K_r:
                         self.rotate_tetrominoe(1)
                     elif event.key == pygame.K_SPACE:
+                        self.t.just_spawned = False
                         for block,new in zip(self.t.blocks,self.preview.blocks):
                             block.position = new.position
                     elif event.key == pygame.K_ESCAPE:
@@ -393,7 +396,7 @@ class TetrominoeManager:
                 # if event.type == pygame.KEYUP:
                 #     if event.key == pygame.K_s:
                 #         self.speed_modifier = 1
-        if self.t.update(delta):  # if collides with block after just spawning
+        if self.t.update(delta) and not moved_sideways:  # if collides with block after just spawning
             return True
 
         self.preview.update(self.t.blocks, self.t.other_blocks)
