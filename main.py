@@ -16,12 +16,20 @@ scenes = {
 
 scene = Title()
 
+pause = Pause()
+
 while is_running:
     if pygame.event.peek(pygame.QUIT):
         is_running = False
 
-    scene.update(delta)
-    scene.draw(screen)
+
+    if not(isinstance(scene, Game) and scene.tm.paused):
+        scene.update(delta)
+        scene.draw(screen)
+    else:
+        if pause.update(delta):
+            scene.tm.paused = False
+        pause.draw(screen)
 
 
     if scene.next_scene is not None:

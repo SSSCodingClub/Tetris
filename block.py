@@ -348,7 +348,10 @@ class TetrominoeManager:
         self.delay = 0
         self.rotations = 0
 
+        self.paused = False
+
     def update(self, delta: int):
+        self.paused = False
         if pygame.key.get_pressed()[pygame.K_s]:
             self.t.speed_modifier = 5
         else:
@@ -381,6 +384,7 @@ class TetrominoeManager:
                         for block,new in zip(self.t.blocks,self.preview.blocks):
                             block.position = new.position
                     elif event.key == pygame.K_ESCAPE:
+                        self.paused = True
 
                     # elif event.key == pygame.K_q: # world is not ready for counter clockwise rotations
                     #     self.rotate_tetrominoe(-1)

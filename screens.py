@@ -126,13 +126,22 @@ class GameOver:
         surf.blit(self.gameovercard, self.gameovercard.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
 
 class Pause:
+    dark = pygame.Surface(dimensions)
+    dark.fill(Colour.DARK_GRAY)
+    dark.set_alpha(25)
+    regular_font = pygame.font.Font("font/Silkscreen-Regular.ttf", 20)
+    text = regular_font.render("Paused",True,Colour.WHITE)
 
     def __init__(self):
-        self.next_scene = None
-        print("Paused.")
+        pass
 
     def update(self, delta):
-        pass
+        for event in pygame.event.get(pygame.KEYDOWN):
+            if event.key == pygame.K_ESCAPE:
+                return True
+        return False
+
 
     def draw(self, surf):
-        pass
+        surf.blit(self.dark,(0,0))
+        surf.blit(self.text,self.text.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/3)))
