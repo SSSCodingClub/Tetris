@@ -1,6 +1,4 @@
 TODO
-- center of rotation
-- wallkicking!?
-- sounds effects (block on ground, game over, line clear - make arcade sounding)
-- particle effects (block on ground, line clear)
-- fix bugs with line clear
+sounds effects (block on ground, game over, line clear - make arcade sounding)
+particle effects (block on ground, line clear)
+fix bugs with line clear

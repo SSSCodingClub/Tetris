@@ -13,6 +13,16 @@ class Block:
         self.outline_colour = (max(self.colour[0] - 25, 0), max(self.colour[1] - 25, 0), max(self.colour[2] - 25, 0))
         self.falling = True
 
+    def is_colliding(self, block_list):
+        if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
+                 self.side_length <= self.position.y <= SCREEN_HEIGHT - self.side_length * 2)):  # to account for block + wall
+            return True
+
+        for block in block_list:
+            if block.get_rect().colliderect(self.get_rect()):
+                return True
+        return False
+
     def check_y(self, block_list):  # Note for later, add type annotation
         if self.position.y + self.side_length >= SCREEN_HEIGHT - Block.side_length:
             # self.position.y = SCREEN_HEIGHT - self.side_length
@@ -117,17 +127,17 @@ class BlockManager:
                 grid[n] = [None for _ in range(12)]
                 score_to_be_added += 1
                 # print_grid()
-                self.detect_tetrominoes(grid)
-                # counter = 0
-                # # move all blocks before down
-                # for m, l in enumerate(grid[n::]):
-                #     for k, j in enumerate(l):
-                #         if isinstance(j, Block): # maybe make check so that it doesnt go out
-                #             counter += 1
-                # #             j.position.y += Block.side_length
-                # #             grid[m][k + 1] = j
-                # #             grid[m][k] = None
-                # print(counter)
+        self.detect_tetrominoes(grid)
+        # counter = 0
+        # # move all blocks before down
+        # for m, l in enumerate(grid[n::]):
+        #     for k, j in enumerate(l):
+        #         if isinstance(j, Block): # maybe make check so that it doesnt go out
+        #             counter += 1
+        # #             j.position.y += Block.side_length
+        # #             grid[m][k + 1] = j
+        # #             grid[m][k] = None
+        # print(counter)
 
         # for i in grid:
         #     for j in i:
@@ -181,7 +191,6 @@ class BlockManager:
                 # temp.append((y-1,x))
                 dfs(x, y - 1, current_t)
 
-        print()
         for y, layer in enumerate(grid):
             for x, i in enumerate(layer):
                 if isinstance(i, Block) and i not in seen:
@@ -194,7 +203,6 @@ class BlockManager:
                     # print_grid(g)
 
                     self.falling_bits.append(Tetrominoe(self, current_tetrominoe))
-                    print('a')
 
     def draw(self, surf: pygame.Surface):
         for block in self.blocks:
@@ -223,6 +231,30 @@ class Tetrominoe:
         "T": (-1, 0),
         "Z": (-1, 0)
 
+    }
+
+    # Data from https://tetris.wiki/Super_Rotation_System#Wall_Kicks
+    # J, L, S, T, Z Tetromino Wall Kick Data
+    wall_kicks = {
+        "0-1": ((0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)),
+        "3-0": ((0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)),
+        "1-2": ((0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)),
+        "2-3": ((0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)),
+        # "2-L": ((0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)),
+        # "L-2": ((0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)),
+        # "L-0": ((0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)),
+        # "0-L": ((0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2))
+    }
+    # I Tetromino Wall Kick Data
+    I_wall_kicks = {
+        "0-1": ((0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)),
+        "3-0": ((0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)),
+        "1-2": ((0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1)),
+        "2-3": ((0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)),
+        # "2-L": ((0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)),
+        # "L-2": ((0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)),
+        # "L-0": ((0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)),
+        # "0-L": ((0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1))
     }
 
     colours = [Colour.RED, Colour.PURPLE, Colour.BLUE, Colour.AQUA, Colour.ORANGE, Colour.YELLOW, Colour.GREEN]
@@ -345,6 +377,8 @@ class TetrominoeManager:
 
                     elif event.key == pygame.K_r:
                         self.rotate_tetrominoe(1)
+                    # elif event.key == pygame.K_q: # world is not ready for counter clockwise rotations
+                    #     self.rotate_tetrominoe(-1)
                 #     elif event.key == pygame.K_s:
                 #         self.speed_modifier = 5
                 # if event.type == pygame.KEYUP:
@@ -383,10 +417,14 @@ class TetrominoeManager:
         # 1 2 3
         # 4 5 6
         # 7 8 9
-        # rotate
+        # rotate_c
         # 7 4 1
         # 8 5 2
         # 9 6 3
+        # rotate_cc
+        # 3 6 9
+        # 2 5 8
+        # 1 4 7
         if self.t.shape == "O":
             return
         elif self.t.shape != "I":
@@ -404,7 +442,7 @@ class TetrominoeManager:
             for x, y in self.t.shapes[self.t.shape]:
                 grid[y + 1][x + 1] = 1
 
-        def rotate(g):
+        def rotate_c(g):
             output = deepcopy(grid)
             for i in range(len(g[0])):
                 for j in range(len(g)):
@@ -412,13 +450,24 @@ class TetrominoeManager:
                 output[i].reverse()
             return output
 
+        def rotate_cc(g):
+            output = deepcopy(grid)
+            for i in range(len(g[0])):
+                for j in range(len(g)):
+                    output[i][j] = g[j][i]
+            output.reverse()
+            return output
+
         rotated_grid = deepcopy(grid)
 
-        self.rotations += 1
+        self.rotations += direction
         self.rotations %= 4
         if direction > 0:
             for i in range(self.rotations):
-                rotated_grid = rotate(rotated_grid)
+                rotated_grid = rotate_c(rotated_grid)
+        elif direction < 0:
+            for i in range(self.rotations):
+                rotated_grid = rotate_cc(rotated_grid)
 
         # print_grid(rotated_grid)
 
@@ -429,9 +478,36 @@ class TetrominoeManager:
                     rotated_positions.append((self.t.rotation_center.x + x * Block.side_length,
                                               self.t.rotation_center.y + y * Block.side_length))
 
-        for pos, block in zip(rotated_positions, self.t.blocks):
-            # print(block.position, pos)
-            block.position = pygame.Vector2(pos)
+        # Wall kicks
+        # DANGER! now entering nerd territory. https://tetris.wiki/Super_Rotation_System#Wall_Kicks
+
+        temp = deepcopy(self.t.blocks)
+        # otherblocks = deepcopy(self.t.other_blocks)
+        rotated = False
+        if self.t.shape != "I":
+            wall_kick_data = Tetrominoe.wall_kicks[f'{(self.rotations - 1) % 4}-{self.rotations}']
+        else:
+            wall_kick_data = Tetrominoe.I_wall_kicks[f'{(self.rotations - 1) % 4}-{self.rotations}']
+
+        for x, y in wall_kick_data:
+            for pos, block in zip(rotated_positions, self.t.blocks):
+                # print(block.position, pos)
+                block.position = pygame.Vector2(pos) + pygame.Vector2(x * Block.side_length, y * Block.side_length)
+            can_move = True
+            for block in self.t.blocks:
+                if block.is_colliding(self.t.other_blocks):
+                    can_move = False
+            if can_move:
+                rotated = True
+                break
+        if not rotated:
+            for block, t in zip(self.t.blocks, temp):
+                block = t
+        # if rotated:
+        #     def get_y(b):
+        #         return b.position.y
+        #     temp.sort(key=get_y, reverse=True)
+        #     self.t.blocks = deepcopy(temp)
 
     def draw(self, surf):
         if self.t.falling:
