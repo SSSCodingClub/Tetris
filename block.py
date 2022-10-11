@@ -481,7 +481,9 @@ class TetrominoeManager:
         # Wall kicks
         # DANGER! now entering nerd territory. https://tetris.wiki/Super_Rotation_System#Wall_Kicks
 
-        temp = deepcopy(self.t.blocks)
+        temp = []
+        for block in self.t.blocks:
+            temp.append(block.position)
         # otherblocks = deepcopy(self.t.other_blocks)
         rotated = False
         if self.t.shape != "I":
@@ -502,7 +504,7 @@ class TetrominoeManager:
                 break
         if not rotated:
             for block, t in zip(self.t.blocks, temp):
-                block = t
+                block.position = t
         # if rotated:
         #     def get_y(b):
         #         return b.position.y
@@ -522,7 +524,7 @@ class Preview:
 
     def check_y(self, block, block_list):  # Note for later, add type annotation
         if block in block_list:
-            print('c')
+            pass
 
         if block.position.y + block.side_length >= SCREEN_HEIGHT - Block.side_length:
             return False
