@@ -582,8 +582,13 @@ class Preview:
 
     def update(self, blocks, otherblocks):
         self.blocks = deepcopy(blocks)
+        positions = {(b.position.x, b.position.y):b for b in self.blocks}
         other_blocks = deepcopy(otherblocks)
-
+        positions2 = {(b.position.x, b.position.y):b for b in other_blocks}
+        self.blocks = []
+        for i in positions.keys():
+            if i in positions2:
+                self.blocks.append(positions2[i])
         while True:
             can_move = True
             for block in self.blocks:
