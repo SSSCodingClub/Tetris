@@ -576,18 +576,18 @@ class Preview:
         for i in positions.keys():
             if i in positions2:
                 self.blocks.append(positions2[i])
-
-        while True:
-            can_move = True
-            for block in self.blocks:
-                if not self.check_y(block, other_blocks):
-                    can_move = False
-            if can_move:
+        if len(self.blocks) > 0:
+            while True:
+                can_move = True
                 for block in self.blocks:
-                    block.position.y += block.side_length
+                    if not self.check_y(block, other_blocks):
+                        can_move = False
+                if can_move:
+                    for block in self.blocks:
+                        block.position.y += block.side_length
 
-            else:
-                break
+                else:
+                    break
 
     def draw(self, surf):
         for block in self.blocks:
