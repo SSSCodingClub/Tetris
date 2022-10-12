@@ -80,7 +80,23 @@ class BlockManager:
 
     def __init__(self):
         self.blocks: list[Block] = []
+        temp = []
+        for i in range(10):
+            for j in range(5):
+                temp.append((i,j))
+        temp.remove((1,0))
+        temp.remove((7,0))
+        temp.remove((8,0))
+        temp.remove((8,1))
+        temp.remove((9,1))
+        temp.remove((9,2))
+        temp.remove((1,3))
+        temp.remove((3,4))
+        for x,y in temp:
+            self.blocks.append(Block(((x+1) * 30, (20-y-1) * 30), Colour.RED))
+            self.blocks[-1].falling= False
         self.falling_bits = []
+        self.sort_blocks()
 
         # self.add_block(Block((Block.side_length, Block.side_length * 5), Colour.RED))
 
@@ -277,7 +293,7 @@ class Tetrominoe:
 
             colour = random.choice(self.colours)
             self.shape = random.choice(list(self.shapes.keys()))
-            # self.shape = "I"
+            self.shape = "I" # TESTING
             for coords in self.shapes[self.shape]:
                 x, y = coords
                 self.blocks.append(Block(((x + 5) * Block.side_length, y * Block.side_length), colour))
