@@ -19,7 +19,7 @@ class Block:
             return True
 
         for block in block_list:
-            if block is self:
+            if block is self or block.falling:
                 continue
             if block.get_rect().colliderect(self.get_rect()):
                 return True
@@ -30,6 +30,8 @@ class Block:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
         for block in block_list:
+            if block.falling:
+                continue
             if block is not self:
                 if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
                     # self.position.y = block.position.y - self.side_length
@@ -47,6 +49,8 @@ class Block:
                 return False
 
         for block in block_list:
+            if block is self or block.falling:
+                continue
             if block is not self:
                 if self.get_rect(dx=self.side_length * direction).colliderect(block.get_rect()):
                     # self.position.x = block.position.x - self.side_length
@@ -92,7 +96,6 @@ class BlockManager:
         self.blocks.sort(reverse=True, key=get_y)
 
     def update(self, delta: int):
-
         for i in self.falling_bits:
             i.update(delta)
             if not i.falling:
@@ -128,8 +131,10 @@ class BlockManager:
                             self.blocks.remove(i)
                 grid[n] = [None for _ in range(12)]
                 score_to_be_added += 1
+                Tetrominoe.gravity_time = max(100, Tetrominoe.gravity_time- 5)
                 # print_grid()
-        self.detect_tetrominoes(grid)
+        if score_to_be_added > 0 :
+            self.detect_tetrominoes(grid)
         # counter = 0
         # # move all blocks before down
         # for m, l in enumerate(grid[n::]):
@@ -280,15 +285,17 @@ class Tetrominoe:
             self.rotation_center = pygame.Vector2(((self.rotation_centers[self.shape][0] + 5) * Block.side_length,
                                                    self.rotation_centers[self.shape][1] * Block.side_length))
 
-            self.other_blocks = bm.blocks.copy()
-
             for b in self.blocks:
                 bm.add_block(b)
+            def get_y(block: Block):
+                return block.position.y
+            self.blocks.sort(reverse=True, key=get_y)
 
             self.just_spawned = True
         else:
             self.blocks = list(dict.fromkeys(blocks.copy()))
-
+            for block in self.blocks:
+                block.falling = True
             # self.blocks = blocks[:]
 
             self.rotation_center = pygame.Vector2(0, 0)
@@ -297,11 +304,6 @@ class Tetrominoe:
                 return block.position.y
 
             self.blocks.sort(reverse=True, key=get_y)
-            self.other_blocks = []
-            # if bm is not None:
-            for b in bm.blocks:
-                if b not in self.blocks:
-                    self.other_blocks.append(b)
             self.just_spawned = False
 
         self.time: int = 0
@@ -322,7 +324,7 @@ class Tetrominoe:
             self.time -= self.gravity_time
             can_move = True
             for block in self.blocks:
-                if not block.check_y(self.other_blocks):
+                if not block.check_y(self.bm.blocks):
                     can_move = False
             if can_move:
                 self.just_spawned = False
@@ -343,6 +345,7 @@ class TetrominoeManager:
     delay_time = 500
 
     def __init__(self, block_manager):
+        Tetrominoe.gravity_time = 250
         self.t: Tetrominoe = Tetrominoe(block_manager)
         self.preview = Preview(self.t.blocks)
 
@@ -356,7 +359,7 @@ class TetrominoeManager:
         if self.t.just_spawned:
             collided = False
             for block in self.t.blocks:
-                if block.is_colliding(self.t.other_blocks) or not block.check_y(self.t.other_blocks):
+                if block.is_colliding(self.t.bm.blocks) or not block.check_y(self.t.bm.blocks):
                     collided = True
             if collided:
                 self.t.falling = False
@@ -377,7 +380,7 @@ class TetrominoeManager:
                     if event.key == pygame.K_a or event.key == pygame.K_LEFT:
                         can_move = True
                         for block in self.t.blocks:
-                            if not block.check_x(-1, self.t.other_blocks):
+                            if not block.check_x(-1, self.t.bm.blocks):
                                 can_move = False
                         if can_move:
                             for block in self.t.blocks:
@@ -387,7 +390,7 @@ class TetrominoeManager:
                     elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                         can_move = True
                         for block in self.t.blocks:
-                            if not block.check_x(1, self.t.other_blocks):
+                            if not block.check_x(1, self.t.bm.blocks):
                                 can_move = False
                         if can_move:
                             for block in self.t.blocks:
@@ -413,7 +416,7 @@ class TetrominoeManager:
         if self.t.update(delta):  # if collides with block after just spawning
             return True
 
-        self.preview.update(self.t.blocks, self.t.other_blocks)
+        self.preview.update(self.t.blocks, self.bm.blocks)
 
         if not self.t.falling:
             if self.delay >= self.delay_time:
@@ -523,7 +526,7 @@ class TetrominoeManager:
                 block.position = pygame.Vector2(pos) + pygame.Vector2(x * Block.side_length, y * Block.side_length)
             can_move = True
             for block in self.t.blocks:
-                if block.is_colliding(self.t.other_blocks):
+                if block.is_colliding(self.t.bm.blocks):
                     can_move = False
             if can_move:
                 rotated = True
@@ -548,21 +551,23 @@ class Preview:
     def __init__(self, blocks):
         self.blocks = deepcopy(blocks)
 
-    def check_y(self, block, block_list):  # Note for later, add type annotation
-        if block in block_list:
-            pass
-
-        if block.position.y + block.side_length >= SCREEN_HEIGHT - Block.side_length:
+    def check_y(self,b, block_list):  # Note for later, add type annotation
+        if b.position.y + b.side_length >= SCREEN_HEIGHT - b.side_length:
+            # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
-        for b in block_list:
-            if b is not self:
-                if block.get_rect(dy=block.side_length).colliderect(b.get_rect()):
+        for block in block_list:
+            if block.falling:
+                continue
+            if block is not b:
+                if b.get_rect(dy=Block.side_length).colliderect(block.get_rect()):
+                    # self.position.y = block.position.y - self.side_length
                     return False
         return True
 
     def update(self, blocks, otherblocks):
         self.blocks = deepcopy(blocks)
         other_blocks = deepcopy(otherblocks)
+
         while True:
             can_move = True
             for block in self.blocks:
@@ -571,6 +576,7 @@ class Preview:
             if can_move:
                 for block in self.blocks:
                     block.position.y += block.side_length
+
             else:
                 break
 
