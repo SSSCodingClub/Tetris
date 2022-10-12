@@ -12,6 +12,7 @@ class Block:
         self.colour = colour
         self.outline_colour = (max(self.colour[0] - 25, 0), max(self.colour[1] - 25, 0), max(self.colour[2] - 25, 0))
         self.falling = True
+        self.is_controlled= False
 
     def is_colliding(self, block_list):
         if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
@@ -30,7 +31,7 @@ class Block:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
         for block in block_list:
-            if block.falling:
+            if (block.falling and not block.is_controlled) or block.is_controlled:
                 continue
             if block is not self:
                 if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
@@ -286,6 +287,7 @@ class Tetrominoe:
                                                    self.rotation_centers[self.shape][1] * Block.side_length))
 
             for b in self.blocks:
+                b.is_controlled = True
                 bm.add_block(b)
             def get_y(block: Block):
                 return block.position.y
@@ -296,6 +298,7 @@ class Tetrominoe:
             self.blocks = list(dict.fromkeys(blocks.copy()))
             for block in self.blocks:
                 block.falling = True
+                block.is_controlled = False
             # self.blocks = blocks[:]
 
             self.rotation_center = pygame.Vector2(0, 0)
@@ -338,6 +341,7 @@ class Tetrominoe:
                 self.falling = False
                 for block in self.blocks:
                     block.falling = False
+                    block.is_controlled = False
         return False
 
 
@@ -559,9 +563,9 @@ class Preview:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
         for block in block_list:
-            if block.falling:
+            if block.is_controlled:
                 continue
-            if block is not b:
+            else:
                 if b.get_rect(dy=Block.side_length).colliderect(block.get_rect()):
                     # self.position.y = block.position.y - self.side_length
                     return False
