@@ -405,7 +405,10 @@ class TetrominoeManager:
                             block.position = new.position
                     elif event.key == pygame.K_ESCAPE:
                         self.paused = True
-
+        else:
+            for event in pygame.event.get(pygame.KEYDOWN):
+                if event.key == pygame.K_ESCAPE:
+                    self.paused = True
                     # elif event.key == pygame.K_q: # world is not ready for counter clockwise rotations
                     #     self.rotate_tetrominoe(-1)
                 #     elif event.key == pygame.K_s:
