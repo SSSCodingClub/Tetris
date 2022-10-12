@@ -12,6 +12,7 @@ class Block:
         self.colour = colour
         self.outline_colour = (max(self.colour[0] - 25, 0), max(self.colour[1] - 25, 0), max(self.colour[2] - 25, 0))
         self.falling = True
+        self.is_controlled= False
 
     def is_colliding(self, block_list):
         if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
@@ -30,7 +31,7 @@ class Block:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
         for block in block_list:
-            if block.falling:
+            if (block.falling and not block.is_controlled) or block.is_controlled:
                 continue
             if block is not self:
                 if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
@@ -62,18 +63,24 @@ class Block:
         # return pygame.Rect(self.position + pygame.Vector2(dx, dy), (self.side_length, self.side_length))
 
     def draw(self, surf: pygame.Surface, wireframe=False):
-        if wireframe:
-            # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            pygame.draw.rect(surf, self.colour, self.get_rect(), self.bezel)
-            # pygame.draw.rect(surf, Colour.GRAY,
-            #                  self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
-            # output.set_alpha(128)
-            # surf.blit(output,(0,0))
+        if self.is_controlled:
+            pygame.draw.rect(surf, (255,0,0), self.get_rect())
+        elif self.falling:
+            pygame.draw.rect(surf, (0,255,0), self.get_rect())
         else:
-            pygame.draw.rect(surf, self.colour, self.get_rect())
-            pygame.draw.rect(surf, self.outline_colour, self.get_rect(), self.bezel)
-            # pygame.draw.rect(surf, self.colour,
-            #                  self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
+            pygame.draw.rect(surf, (0,0,255), self.get_rect())
+        # if wireframe:
+        #     # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        #     pygame.draw.rect(surf, self.colour, self.get_rect(), self.bezel)
+        #     # pygame.draw.rect(surf, Colour.GRAY,
+        #     #                  self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
+        #     # output.set_alpha(128)
+        #     # surf.blit(output,(0,0))
+        # else:
+        #     pygame.draw.rect(surf, self.colour, self.get_rect())
+        #     pygame.draw.rect(surf, self.outline_colour, self.get_rect(), self.bezel)
+        #     # pygame.draw.rect(surf, self.colour,
+        #     #                  self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
 
 
 class BlockManager:
@@ -302,6 +309,7 @@ class Tetrominoe:
                                                    self.rotation_centers[self.shape][1] * Block.side_length))
 
             for b in self.blocks:
+                b.is_controlled = True
                 bm.add_block(b)
             def get_y(block: Block):
                 return block.position.y
@@ -312,6 +320,7 @@ class Tetrominoe:
             self.blocks = list(dict.fromkeys(blocks.copy()))
             for block in self.blocks:
                 block.falling = True
+                block.is_controlled = False
             # self.blocks = blocks[:]
 
             self.rotation_center = pygame.Vector2(0, 0)
@@ -354,6 +363,7 @@ class Tetrominoe:
                 self.falling = False
                 for block in self.blocks:
                     block.falling = False
+                    block.is_controlled = False
         return False
 
 
@@ -572,9 +582,9 @@ class Preview:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
         for block in block_list:
-            if block.falling:
+            if block.is_controlled:
                 continue
-            if block is not b:
+            else:
                 if b.get_rect(dy=Block.side_length).colliderect(block.get_rect()):
                     # self.position.y = block.position.y - self.side_length
                     return False
@@ -589,18 +599,20 @@ class Preview:
         for i in positions.keys():
             if i in positions2:
                 self.blocks.append(positions2[i])
-        while True:
-            can_move = True
-            for block in self.blocks:
-                if not self.check_y(block, other_blocks):
-                    can_move = False
-            if can_move:
+        if len(self.blocks) > 0:
+            while True:
+                can_move = True
                 for block in self.blocks:
-                    block.position.y += block.side_length
+                    if not self.check_y(block, other_blocks):
+                        can_move = False
+                if can_move:
+                    for block in self.blocks:
+                        block.position.y += block.side_length
 
-            else:
-                break
+                else:
+                    break
 
     def draw(self, surf):
         for block in self.blocks:
-            block.draw(surf, wireframe=True)
+            pygame.draw.rect(surf,(0,0,0),block.get_rect(), 3)
+            # block.draw(surf, wireframe=True)
