@@ -448,7 +448,6 @@ class TetrominoeManager:
             return True
 
         self.preview.update(self.t.blocks, self.bm.blocks)
-        print(len(self.t.effects))
         for e in self.t.effects:
             if e not in self.effects:
                 self.effects.append(e)
