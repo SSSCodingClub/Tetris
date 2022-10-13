@@ -27,18 +27,31 @@ class Block:
                 return True
         return False
 
-    def check_y(self, block_list):  # Note for later, add type annotation
+    def check_y(self, block_list,is_tetromino_controlled=False):  # Note for later, add type annotation
         if self.position.y + self.side_length >= SCREEN_HEIGHT - Block.side_length:
-            # self.position.y = SCREEN_HEIGHT - self.side_length
-            return False
-        for block in block_list:
-            if (block.falling and not block.is_controlled) or block.is_controlled:
-                continue
-            if block is not self:
-                if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
-                    # self.position.y = block.position.y - self.side_length
-                    return False
-        return True
+             return False, False
+        if is_tetromino_controlled:
+            still_falling = False
+            for block in block_list:
+                if block.is_controlled:
+                    continue
+
+                if block is not self:
+                    if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
+                        # self.position.y = block.position.y - self.side_length
+                        if block.falling:
+                            still_falling = True
+                        return False, still_falling
+        else:
+            for block in block_list:
+                if block.falling:
+                    continue
+                if block is not self:
+                    if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
+                        # self.position.y = block.position.y - self.side_length
+                        return False, False
+
+        return True, False
 
     def check_x(self, direction, block_list):
         if direction > 0:  # 1 for right
@@ -300,6 +313,7 @@ class Tetrominoe:
             self.blocks.sort(reverse=True, key=get_y)
 
             self.just_spawned = True
+            self.is_controlled = True
         else:
             self.blocks = list(dict.fromkeys(blocks.copy()))
             for block in self.blocks:
@@ -314,6 +328,7 @@ class Tetrominoe:
 
             self.blocks.sort(reverse=True, key=get_y)
             self.just_spawned = False
+            self.is_controlled = False
 
         self.time: int = 0
         self.falling: bool = True
@@ -341,7 +356,8 @@ class Tetrominoe:
             self.time = 0
             can_move = True
             for block in self.blocks:
-                if not block.check_y(self.bm.blocks):
+                check_y,still_falling = block.check_y(self.bm.blocks, self.is_controlled)
+                if not check_y:
                     can_move = False
             if can_move:
                 self.just_spawned = False
@@ -352,11 +368,11 @@ class Tetrominoe:
             else:
                 if self.just_spawned:
                     return True
-
-                self.falling = False
-                for block in self.blocks:
-                    block.falling = False
-                    # block.is_controlled = False
+                if not still_falling:
+                    self.falling = False
+                    for block in self.blocks:
+                        block.falling = False
+                        # block.is_controlled = False
 
 
 
@@ -382,7 +398,7 @@ class TetrominoeManager:
         if self.t.just_spawned:
             collided = False
             for block in self.t.blocks:
-                if block.is_colliding(self.t.bm.blocks) or not block.check_y(self.t.bm.blocks):
+                if block.is_colliding(self.t.bm.blocks) or not block.check_y(self.t.bm.blocks, True)[0]:
                     collided = True
             if collided:
                 self.t.falling = False
@@ -425,6 +441,7 @@ class TetrominoeManager:
                         self.t.just_spawned = False
                         for block, new in zip(self.t.blocks, self.preview.blocks):
                             block.position = new.position
+                            block.falling = True
                             if not self.t.effects_added:
                                 self.effects.append(BlockHit(block,250,3,self.effects))
                         self.t.effects_added = True
