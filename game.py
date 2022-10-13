@@ -1,6 +1,6 @@
 from setup import *
 from block import Block, BlockManager, Tetrominoe, TetrominoeManager
-
+from effects import  LineClear
 
 class Walls:
     colour = Colour.DARK_GRAY
@@ -21,15 +21,20 @@ class Walls:
 class Game:
 
     def __init__(self):
+        self.effects = []
+        self.effects.append(LineClear((0,SCREEN_HEIGHT-30),400,self.effects))
         self.next_scene = None
-        self.bm: BlockManager = BlockManager()
-        self.tm: TetrominoeManager = TetrominoeManager(self.bm)
+        self.bm: BlockManager = BlockManager(self.effects)
+        self.tm: TetrominoeManager = TetrominoeManager(self.bm, self.effects)
 
         self.score = 0
 
         self.walls = Walls()
 
     def update(self, delta: int):
+
+        for effect in self.effects:
+            effect.update(delta)
         if self.tm.update(delta):
             self.next_scene = "GameOver"
 
@@ -37,6 +42,7 @@ class Game:
         #     self.next_scene = "Pause"
 
         self.score += self.bm.update(delta)
+
 
         # print(self.score)
 
@@ -47,3 +53,5 @@ class Game:
         #                                                 SCREEN_HEIGHT - Block.side_length))
         self.tm.draw(surf)
         self.bm.draw(surf)
+        for effect in self.effects:
+            effect.draw(surf)

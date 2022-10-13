@@ -125,12 +125,13 @@ class GameOver:
 
         surf.blit(self.gameovercard, self.gameovercard.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)))
 
+
 class Pause:
     dark = pygame.Surface(dimensions)
     dark.fill(Colour.DARK_GRAY)
     dark.set_alpha(25)
     regular_font = pygame.font.Font("font/Silkscreen-Regular.ttf", 20)
-    text = regular_font.render("Paused",True,Colour.WHITE)
+    text = regular_font.render("Paused", True, Colour.WHITE)
 
     def __init__(self):
         self.copied_bg = False
@@ -156,12 +157,11 @@ class Pause:
                 return True
         return False
 
-
     def draw(self, surf):
         if not self.unpaused:
             if not self.copied_bg:
                 self.bg = surf.copy()
                 self.copied_bg = True
-            surf.blit(self.bg, (0,0))
-            surf.blit(self.dark,(0,0))
-            surf.blit(self.text,self.text.get_rect(center=(SCREEN_WIDTH/2,SCREEN_HEIGHT/3)))
+            surf.blit(self.bg, (0, 0))
+            surf.blit(self.dark, (0, 0))
+            surf.blit(self.text, self.text.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3)))

@@ -1,6 +1,7 @@
 import pygame.draw
 
 from setup import *
+from effects import  LineClear, HardDrop
 
 
 class Block:
@@ -12,7 +13,7 @@ class Block:
         self.colour = colour
         self.outline_colour = (max(self.colour[0] - 25, 0), max(self.colour[1] - 25, 0), max(self.colour[2] - 25, 0))
         self.falling = True
-        self.is_controlled= False
+        self.is_controlled = False
 
     def is_colliding(self, block_list):
         if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
@@ -79,9 +80,10 @@ class Block:
 
 class BlockManager:
 
-    def __init__(self):
+    def __init__(self, effects):
         self.blocks: list[Block] = []
         self.falling_bits = []
+        self.effects = effects
 
         # self.add_block(Block((Block.side_length, Block.side_length * 5), Colour.RED))
 
@@ -132,9 +134,10 @@ class BlockManager:
                             self.blocks.remove(i)
                 grid[n] = [None for _ in range(12)]
                 score_to_be_added += 1
-                Tetrominoe.gravity_time = max(100, Tetrominoe.gravity_time- 5)
+                Tetrominoe.gravity_time = max(100, Tetrominoe.gravity_time - 10)
+                self.effects.append(LineClear((0,(n+1)*30),Tetrominoe.gravity_time,self.effects))
                 # print_grid()
-        if score_to_be_added > 0 :
+        if score_to_be_added > 0:
             self.detect_tetrominoes(grid)
         # counter = 0
         # # move all blocks before down
@@ -218,7 +221,7 @@ class BlockManager:
 
 
 class Tetrominoe:
-    gravity_time: int = 250
+    gravity_time: int = 400
     # https://tetris.fandom.com/wiki/Tetromino refer to this for names
     shapes: dict = {
         "O": ((1, 1), (0, 1), (0, 0), (1, 0)),
@@ -289,8 +292,10 @@ class Tetrominoe:
             for b in self.blocks:
                 b.is_controlled = True
                 bm.add_block(b)
+
             def get_y(block: Block):
                 return block.position.y
+
             self.blocks.sort(reverse=True, key=get_y)
 
             self.just_spawned = True
@@ -323,8 +328,9 @@ class Tetrominoe:
     def move(self, delta) -> bool:
 
         self.time += delta * self.speed_modifier
+        # print(self.time, self.gravity_time)
         if self.time >= self.gravity_time:
-            self.time -= self.gravity_time
+            self.time = 0
             can_move = True
             for block in self.blocks:
                 if not block.check_y(self.bm.blocks):
@@ -348,11 +354,11 @@ class Tetrominoe:
 class TetrominoeManager:
     delay_time = 500
 
-    def __init__(self, block_manager):
-        Tetrominoe.gravity_time = 250
+    def __init__(self, block_manager, effects):
+        Tetrominoe.gravity_time = 400
         self.t: Tetrominoe = Tetrominoe(block_manager)
         self.preview = Preview(self.t.blocks)
-
+        self.effects = effects
         self.bm = block_manager
         self.delay = 0
         self.rotations = 0
@@ -370,7 +376,6 @@ class TetrominoeManager:
                 for block in self.t.blocks:
                     block.falling = False
                 return True
-
 
         self.paused = False
         moved_sideways = False
@@ -405,8 +410,10 @@ class TetrominoeManager:
                         self.rotate_tetrominoe(1)
                     elif event.key == pygame.K_SPACE:
                         self.t.just_spawned = False
-                        for block,new in zip(self.t.blocks,self.preview.blocks):
+                        for block, new in zip(self.t.blocks, self.preview.blocks):
                             block.position = new.position
+                        print(self.t.blocks)
+                        self.effects.append(HardDrop(self.t.blocks,self.effects))
                     elif event.key == pygame.K_ESCAPE:
                         self.paused = True
         else:
@@ -558,7 +565,7 @@ class Preview:
     def __init__(self, blocks):
         self.blocks = deepcopy(blocks)
 
-    def check_y(self,b, block_list):  # Note for later, add type annotation
+    def check_y(self, b, block_list):  # Note for later, add type annotation
         if b.position.y + b.side_length >= SCREEN_HEIGHT - b.side_length:
             # self.position.y = SCREEN_HEIGHT - self.side_length
             return False
@@ -573,9 +580,9 @@ class Preview:
 
     def update(self, blocks, otherblocks):
         self.blocks = deepcopy(blocks)
-        positions = {(b.position.x, b.position.y):b for b in self.blocks}
+        positions = {(b.position.x, b.position.y): b for b in self.blocks}
         other_blocks = deepcopy(otherblocks)
-        positions2 = {(b.position.x, b.position.y):b for b in other_blocks}
+        positions2 = {(b.position.x, b.position.y): b for b in other_blocks}
         self.blocks = []
         for i in positions.keys():
             if i in positions2:

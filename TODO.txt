@@ -1,4 +1,9 @@
 TODO
 sounds effects (block on ground, game over, line clear - make arcade sounding)
 particle effects (block on ground, line clear)
+    line clear goes left to right
+    hard drop thing behind tetro.
+    fade out fade in effect when land
+
+hold movement
 

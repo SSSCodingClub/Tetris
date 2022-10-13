@@ -1,5 +1,3 @@
-import pygame.event
-
 from setup import *
 from game import Game
 from screens import Title, GameOver, Pause
@@ -11,7 +9,7 @@ scenes = {
     "Title": Title,
     "Game": Game,
     "GameOver": GameOver,
-    "Pause":Pause
+    "Pause": Pause
 }
 
 scene = Title()
@@ -22,15 +20,13 @@ while is_running:
     if pygame.event.peek(pygame.QUIT):
         is_running = False
 
-
-    if not(isinstance(scene, Game) and scene.tm.paused):
+    if not (isinstance(scene, Game) and scene.tm.paused):
         scene.update(delta)
         scene.draw(screen)
     else:
         if pause.update(delta):
             scene.tm.paused = False
         pause.draw(screen)
-
 
     if scene.next_scene is not None:
         if scene.next_scene == "GameOver" and isinstance(scene, Game):
