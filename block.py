@@ -1,7 +1,7 @@
 import pygame.draw
 
 from setup import *
-from effects import  LineClear, HardDrop
+from effects import  LineClear, HardDrop, BlockHit
 
 
 class Block:
@@ -274,8 +274,9 @@ class Tetrominoe:
     #     print(self.rotation_center, self.blocks[0].position)
     #     r = pygame.Rect(self.rotation_center, (Block.side_length, Block.side_length))
     #     pygame.draw.rect(surf,(255,255,255),r)
-
+    effects = []
     def __init__(self, bm: BlockManager, blocks=None) -> None:
+        self.effects_added = False
         if blocks is None:
             self.blocks = []
 
@@ -323,7 +324,14 @@ class Tetrominoe:
 
     def update(self, delta: int) -> bool:
         if self.falling:
-            return self.move(delta)
+            temp = self.move(delta)
+            if not self.effects_added:
+                for block in self.blocks:
+                    if not block.check_y(self.bm.blocks):
+                        self.effects.append(BlockHit(block,250,3,self.effects))
+                        self.effects_added = True
+
+            return temp
 
     def move(self, delta) -> bool:
 
@@ -339,6 +347,7 @@ class Tetrominoe:
                 self.just_spawned = False
                 for block in self.blocks:
                     block.position.y += block.side_length
+
                 self.rotation_center.y += Block.side_length
             else:
                 if self.just_spawned:
@@ -348,6 +357,9 @@ class Tetrominoe:
                 for block in self.blocks:
                     block.falling = False
                     block.is_controlled = False
+
+
+
         return False
 
 
@@ -366,6 +378,7 @@ class TetrominoeManager:
         self.paused = False
 
     def update(self, delta: int):
+
         if self.t.just_spawned:
             collided = False
             for block in self.t.blocks:
@@ -412,8 +425,10 @@ class TetrominoeManager:
                         self.t.just_spawned = False
                         for block, new in zip(self.t.blocks, self.preview.blocks):
                             block.position = new.position
-                        print(self.t.blocks)
-                        self.effects.append(HardDrop(self.t.blocks,self.effects))
+                            if not self.t.effects_added:
+                                self.effects.append(BlockHit(block,250,3,self.effects))
+                        self.t.effects_added = True
+                        # self.effects.append(HardDrop2(self.t.blocks,self.effects))
                     elif event.key == pygame.K_ESCAPE:
                         self.paused = True
         else:
@@ -427,11 +442,17 @@ class TetrominoeManager:
                 # if event.type == pygame.KEYUP:
                 #     if event.key == pygame.K_s:
                 #         self.speed_modifier = 1
+
+
         if self.t.update(delta):  # if collides with block after just spawning
             return True
 
         self.preview.update(self.t.blocks, self.bm.blocks)
-
+        print(len(self.t.effects))
+        for e in self.t.effects:
+            if e not in self.effects:
+                self.effects.append(e)
+                self.effects[-1].effects = self.effects
         if not self.t.falling:
             if self.delay >= self.delay_time:
                 self.reset_tetrominoe()

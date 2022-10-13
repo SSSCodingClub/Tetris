@@ -1,7 +1,54 @@
+import random
+
 import pygame
 
 from setup import *
 
+
+class Particle:
+    gravity =600
+
+    def __init__(self, pos, vel, colour):
+        self.position = pygame.Vector2(pos)
+        self.velocity = pygame.Vector2(vel)
+        self.acceleration = pygame.Vector2(0,self.gravity)
+        self.side = random.randint(5,12)
+        self.r = pygame.Rect(self.position, (self.side,self.side))
+        self.colour = colour
+        self.outline_colour = (max(self.colour[0] - 100, 0), max(self.colour[1] - 100, 0), max(self.colour[2] - 100, 0))
+    def update(self,delta):
+        self.position.x += self.velocity.x * delta/1000
+        self.position.y += self.velocity.y * delta/1000
+        self.velocity.x += self.acceleration.x * delta/1000
+        self.velocity.y += self.acceleration.y * delta/1000
+        self.r = pygame.Rect(self.position, (self.side, self.side))
+
+        # print(delta)
+
+    def draw(self,surf):
+        pygame.draw.rect(surf,self.colour,self.r)
+        pygame.draw.rect(surf,self.outline_colour,self.r,2)
+
+class BlockHit:
+
+    def __init__(self, block, intensity, amount, effect_list):
+        self.effects = effect_list
+        self.position = pygame.Vector2(block.position)
+        self.time = 0
+        self.amount = amount
+        self.particles = [Particle(self.position + pygame.Vector2(random.random() * 15 - 15/2, 30), (intensity * random.random() - intensity/2,intensity * random.random()-intensity * 0.9), block.colour) for _ in range(self.amount)]
+
+    def update(self, delta):
+        self.time += delta
+        for e in self.particles:
+            e.update(delta)
+        if self.time >= 10000:
+            if self in self.effects:
+                self.effects.remove(self)
+
+    def draw(self, surf):
+        for e in self.particles:
+            e.draw(surf)
 
 class LineClear:
     min_time = 600
@@ -38,16 +85,16 @@ class LineClear:
 class HardDrop:
     n=5 # number of squares the trail follows
     trail = []
-    for i in range(n):
-        t = pygame.Surface((30, 30))
+    for i in range(n*6):
+        t = pygame.Surface((30, 5))
         t.fill(Colour.WHITE)
-        t.set_alpha(int(100 - (i+1) * 100/n))
+        t.set_alpha(int(100 - (i+1) * 100/(n*6)))
         trail.append(t)
     trail2 =[]
-    for i in range(n):
+    for i in range(n*6):
         t = pygame.Surface((60, 30))
         t.fill(Colour.WHITE)
-        t.set_alpha(int(100 - (i+1) * 100/n))
+        t.set_alpha(int(100 - (i+1) * 100/(n*6)))
         trail2.append(t)
 
     def __init__(self, blocks, effect_list):
@@ -88,16 +135,16 @@ class HardDrop:
 
     def draw(self,surf):
         for i,j in enumerate(self.trail):
-            surf.blit(j,j.get_rect(bottomleft=(self.left.position.x,self.left.position.y - i * 30)))
+            surf.blit(j,j.get_rect(bottomleft=(self.left.position.x,self.left.position.y - i * 5)))
             if self.right.position.x > self.left.position.x:
-                surf.blit(j,j.get_rect(bottomleft=(self.right.position.x,self.right.position.y - i * 30)))
+                surf.blit(j,j.get_rect(bottomleft=(self.right.position.x,self.right.position.y - i * 5)))
             if self.right.position.x - (self.left.position.x+30) == 30:
-                surf.blit(j,j.get_rect(bottomleft=(self.left.position.x+30,self.middle.position.y - i * 30)))
+                surf.blit(j,j.get_rect(bottomleft=(self.left.position.x+30,self.middle.position.y - i * 5)))
 
 
         if self.right.position.x - (self.left.position.x+30) > 30:
             for i,j in enumerate(self.trail2):
-                surf.blit(j,j.get_rect(bottomleft=(self.left.position.x+30,self.middle.position.y - i * 30)))
+                surf.blit(j,j.get_rect(bottomleft=(self.left.position.x+30,self.middle.position.y - i * 5)))
 
 
         # l_trail = pygame.Surface((30, (self.n) * 30))

@@ -1,6 +1,6 @@
 from setup import *
 from block import Block, BlockManager, Tetrominoe, TetrominoeManager
-from effects import  LineClear
+from effects import  LineClear,BlockHit
 
 class Walls:
     colour = Colour.DARK_GRAY
@@ -22,7 +22,7 @@ class Game:
 
     def __init__(self):
         self.effects = []
-        self.effects.append(LineClear((0,SCREEN_HEIGHT-30),400,self.effects))
+        # self.effects.append()
         self.next_scene = None
         self.bm: BlockManager = BlockManager(self.effects)
         self.tm: TetrominoeManager = TetrominoeManager(self.bm, self.effects)
