@@ -100,45 +100,7 @@ class BlockManager:
 
     def __init__(self):
         self.blocks: list[Block] = []
-        # temp = []
-        # for i in range(10):
-        #     for j in range(5):
-        #         temp.append((i,j))
-        # temp.remove((1,0))
-        # temp.remove((7,0))
-        # temp.remove((8,0))
-        # temp.remove((8,1))
-        # temp.remove((9,1))
-        # temp.remove((9,2))
-        # temp.remove((1,3))
-        # temp.remove((3,4))
-        # for x,y in temp:
-        #     self.blocks.append(Block(((x+1) * 30, (20-y-1) * 30), Colour.RED))
-        #     self.blocks[-1].falling= False
-        temp = []
-        for i in range(10):
-            for j in range(10):
-                temp.append((i,j))
-        temp.remove((4,0))
-        temp.remove((4,1))
-        temp.remove((6,1))
-
-        temp.remove((0,2))
-        temp.remove((0,3))
-        temp.remove((0,4))
-        temp.remove((0,5))
-        temp.remove((0,6))
-        temp.remove((0,7))
-        temp.remove((0,8))
-        temp.remove((0,9))
-
-
-
-        for x,y in temp:
-            self.blocks.append(Block(((x+1) * 30, (20-y-1) * 30), Colour.RED))
-            self.blocks[-1].falling= False
-        self.falling_bits = []
-        self.sort_blocks()
+        
 
         # self.add_block(Block((Block.side_length, Block.side_length * 5), Colour.RED))
 
