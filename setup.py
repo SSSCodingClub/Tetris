@@ -24,8 +24,22 @@ clock = pygame.time.Clock()
 fps = 60
 
 mixer.music.load('TetrisTheme.wav')
-mixer.music.set_volume(0.25)
+mixer.music.set_volume(0.15)
 mixer.music.play(-1)
+
+sounds = {
+    "game_over": pygame.mixer.Sound("sounds/game_over.wav"),
+    "line_break": pygame.mixer.Sound("sounds/line_break.wav"),
+    "move": pygame.mixer.Sound("sounds/move.wav"),
+    "place": pygame.mixer.Sound("sounds/place.wav"),
+    "rotate": pygame.mixer.Sound("sounds/rotate.wav")
+}
+
+sounds["line_break"].set_volume(0.5)
+sounds["place"].set_volume(0.1)
+sounds["move"].set_volume(0.33)
+sounds["rotate"].set_volume(0.33)
+
 
 
 class Colour:

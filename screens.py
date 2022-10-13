@@ -85,6 +85,8 @@ class GameOver:
     dark.set_alpha(125)
 
     def __init__(self, score):
+        sounds["game_over"].play()
+        mixer.music.fadeout(10000)
         self.score = score
         self.score_text = self.regular_font2.render(f"Score:{self.score}", True, Colour.LIGHT_GRAY)
         self.next_scene = None
@@ -99,6 +101,8 @@ class GameOver:
         for event in pygame.event.get():
             if self.time > 4500 and (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
                 self.next_scene = "Game"
+                mixer.music.play(-1)
+
 
     def draw(self, surf):
         if not self.saved_bg:

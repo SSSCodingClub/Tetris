@@ -37,6 +37,7 @@ class BlockHit:
         self.time = 0
         self.amount = amount
         self.particles = [Particle(self.position + pygame.Vector2(random.random() * 15 - 15/2, 30), (intensity * random.random() - intensity/2,intensity * random.random()-intensity * 0.9), block.colour) for _ in range(self.amount)]
+        sounds["place"].play()
 
     def update(self, delta):
         self.time += delta
@@ -60,6 +61,8 @@ class LineClear:
         self.max_time = time_allowed
         self.effect_list = effect_list
         self.display = []
+        sounds["line_break"].play()
+
     def update(self, delta):
         self.display = []
         for x,i in enumerate(self.blocks):#[:round(self.min_time/(self.time+1))]

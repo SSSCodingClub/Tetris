@@ -15,22 +15,32 @@ class Block:
         self.falling = True
         self.is_controlled = False
 
-    def is_colliding(self, block_list):
+    def is_colliding(self, block_list, is_tetromino_controlled = False):
         if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
                  0 <= self.position.y <= SCREEN_HEIGHT - self.side_length * 2)):  # to account for block + wall
             return True
+        # if is_tetromino_controlled:
+        #     for block in block_list:
+        #         if block.is_controlled:
+        #             continue
+        #
+        #         if block is not self:
+        #             if self.get_rect().colliderect(block.get_rect()):
+        #                 # self.position.y = block.position.y - self.side_length
+        #                 return False
+        # else:
+        #     for block in block_list:
+        #         if block.falling:
+        #             continue
+        #         if block is not self:
+        #             if self.get_rect().colliderect(block.get_rect()):
+        #                 # self.position.y = block.position.y - self.side_length
+        #                 return False
         for block in block_list:
-            if block.is_controlled:
+            if block is self:# or block.falling:
                 continue
-
-            if block is not self:
-                if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
-                    return False
-        # for block in block_list:
-        #     if block is self or block.falling:
-        #         continue
-        #     if block.get_rect().colliderect(self.get_rect()):
-        #         return True
+            if block.get_rect().colliderect(self.get_rect()):
+                return True
         return False
 
     def check_y(self, block_list,is_tetromino_controlled=False):  # Note for later, add type annotation
@@ -373,7 +383,7 @@ class Tetrominoe:
                 self.just_spawned = False
                 for block in self.blocks:
                     block.position.y += block.side_length
-
+                sounds["move"].play()
                 self.rotation_center.y += Block.side_length
             else:
                 if self.just_spawned:
@@ -658,10 +668,11 @@ class TetrominoeManager:
 
             can_move = True
             for block in self.t.blocks:
-                if block.is_colliding(self.t.bm.blocks):
+                if block.is_colliding(self.bm.blocks, True):
                     can_move = False
             if can_move:
                 rotated = True
+                sounds["rotate"].play()
                 for block in self.t.blocks:
                     block.falling = True
                 self.t.falling = True
