@@ -19,12 +19,18 @@ class Block:
         if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
                  0 <= self.position.y <= SCREEN_HEIGHT - self.side_length * 2)):  # to account for block + wall
             return True
-
         for block in block_list:
-            if block is self or block.falling:
+            if block.is_controlled:
                 continue
-            if block.get_rect().colliderect(self.get_rect()):
-                return True
+
+            if block is not self:
+                if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
+                    return False
+        # for block in block_list:
+        #     if block is self or block.falling:
+        #         continue
+        #     if block.get_rect().colliderect(self.get_rect()):
+        #         return True
         return False
 
     def check_y(self, block_list,is_tetromino_controlled=False):  # Note for later, add type annotation
@@ -97,6 +103,7 @@ class BlockManager:
         self.blocks: list[Block] = []
         self.falling_bits = []
         self.effects = effects
+        self.grid = [[None for i in range(12)] for i in range(21)]
 
         # self.add_block(Block((Block.side_length, Block.side_length * 5), Colour.RED))
 
@@ -114,14 +121,15 @@ class BlockManager:
     def update(self, delta: int):
         for i in self.falling_bits:
             i.update(delta)
-            if not i.falling:
+            if not i.falling and i in self.falling_bits:
                 self.falling_bits.remove(i)
+                del i
         # print('---------------------------------------------', len(self.blocks))
         self.sort_blocks()
-        grid = [[None for i in range(12)] for i in range(21)]
+        self.grid = [[None for i in range(12)] for i in range(21)]
         for block in self.blocks:
             if not block.falling:
-                grid[int(block.position.y / Block.side_length)][int(block.position.x / Block.side_length)] = block
+                self.grid[int(block.position.y / Block.side_length)][int(block.position.x / Block.side_length)] = block
 
         # def print_grid():
         #
@@ -135,7 +143,7 @@ class BlockManager:
 
         # print('-----------------')
         score_to_be_added = 0
-        for n, layer in enumerate(grid):
+        for n, layer in enumerate(self.grid):
             x_counts = 0
             for i in layer:
                 if isinstance(i, Block):
@@ -145,13 +153,13 @@ class BlockManager:
                     if isinstance(i, Block):
                         if i in self.blocks:
                             self.blocks.remove(i)
-                grid[n] = [None for _ in range(12)]
+                self.grid[n] = [None for _ in range(12)]
                 score_to_be_added += 1
                 Tetrominoe.gravity_time = max(100, Tetrominoe.gravity_time - 10)
                 self.effects.append(LineClear((0,(n+1)*30),Tetrominoe.gravity_time,self.effects))
                 # print_grid()
         if score_to_be_added > 0:
-            self.detect_tetrominoes(grid)
+            self.detect_tetrominoes(self.grid)
         # counter = 0
         # # move all blocks before down
         # for m, l in enumerate(grid[n::]):
@@ -295,7 +303,7 @@ class Tetrominoe:
 
             colour = random.choice(self.colours)
             self.shape = random.choice(list(self.shapes.keys()))
-            # self.shape = "I"
+            # self.shape = "T"
             for coords in self.shapes[self.shape]:
                 x, y = coords
                 self.blocks.append(Block(((x + 5) * Block.side_length, y * Block.side_length), colour))
@@ -330,6 +338,8 @@ class Tetrominoe:
             self.just_spawned = False
             self.is_controlled = False
 
+        self.hard_dropped = False
+
         self.time: int = 0
         self.falling: bool = True
 
@@ -342,7 +352,7 @@ class Tetrominoe:
             temp = self.move(delta)
             if not self.effects_added:
                 for block in self.blocks:
-                    if not block.check_y(self.bm.blocks):
+                    if not block.check_y(self.bm.blocks)[0]:
                         self.effects.append(BlockHit(block,250,3,self.effects))
                         self.effects_added = True
 
@@ -373,6 +383,8 @@ class Tetrominoe:
                     for block in self.blocks:
                         block.falling = False
                         # block.is_controlled = False
+                # self.bm.falling_bits.clear()
+                # self.bm.detect_tetrominoes(self.bm.grid)
 
 
 
@@ -392,6 +404,12 @@ class TetrominoeManager:
         self.rotations = 0
 
         self.paused = False
+        self.left_move_ticker = 0
+        self.left_moves = 0
+        self.right_move_ticker = 0
+        self.right_moves = 0
+        self.rotational_move_ticker = 0
+        self.rotational_moves = 0
 
     def update(self, delta: int):
 
@@ -407,44 +425,104 @@ class TetrominoeManager:
                 return True
 
         self.paused = False
-        moved_sideways = False
-        if pygame.key.get_pressed()[pygame.K_s] or pygame.key.get_pressed()[pygame.K_DOWN]:
-            self.t.speed_modifier = 5
-        else:
-            self.t.speed_modifier = 1
+        pressed = pygame.key.get_pressed()
+        if not self.t.hard_dropped:
+            if pressed[pygame.K_s] or pressed[pygame.K_DOWN]:
+                self.t.speed_modifier = 5
+            else:
+                self.t.speed_modifier = 1
+
+            moved_left = pressed[pygame.K_a] or pressed[pygame.K_LEFT]
+            moved_right = pressed[pygame.K_d] or pressed[pygame.K_RIGHT]
+
+            if moved_left and not moved_right:
+                self.left_move_ticker += delta
+                if self.left_moves == 0 or self.left_move_ticker > 210 and self.t.falling:
+                    moved_sideways = True
+                    self.left_move_ticker = 0
+                    self.left_moves += 1
+                    can_move = True
+                    for block in self.t.blocks:
+                        if not block.check_x(-1, self.t.bm.blocks):
+                            can_move = False
+                    if can_move:
+                        for block in self.t.blocks:
+                            block.position.x -= block.side_length
+                        self.t.rotation_center.x -= Block.side_length
+            else:
+                self.left_move_ticker = 0
+                self.left_moves = 0
+
+            if moved_right and not moved_left:
+
+                self.right_move_ticker += delta
+                if self.right_moves == 0 or self.right_move_ticker > 210 and self.t.falling:
+                    moved_sideways = True
+                    self.right_move_ticker = 0
+                    self.right_moves += 1
+                    can_move = True
+                    for block in self.t.blocks:
+                        if not block.check_x(1, self.t.bm.blocks):
+                            can_move = False
+                    if can_move:
+                        for block in self.t.blocks:
+                            block.position.x += block.side_length
+                        self.t.rotation_center.x += Block.side_length
+            else:
+                self.right_move_ticker = 0
+                self.right_moves = 0
+
+            if pressed[pygame.K_w] or pressed[pygame.K_UP] or pressed[pygame.K_r]:
+                self.rotational_move_ticker += delta
+                if self.rotational_moves == 0 or self.rotational_move_ticker > 275 and self.t.falling:
+                    self.rotational_move_ticker = 0
+                    self.rotational_moves += 1
+                    self.rotate_tetrominoe(1)
+            else:
+                self.rotational_move_ticker = 0
+                self.rotational_moves = 0
+
+
+
+
         if self.t.falling:
+
+
             for event in pygame.event.get((pygame.KEYDOWN, pygame.KEYUP)):
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_a or event.key == pygame.K_LEFT:
-                        can_move = True
-                        for block in self.t.blocks:
-                            if not block.check_x(-1, self.t.bm.blocks):
-                                can_move = False
-                        if can_move:
-                            for block in self.t.blocks:
-                                block.position.x -= block.side_length
-                            self.t.rotation_center.x -= Block.side_length
-                            moved_sideways = True
-                    elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
-                        can_move = True
-                        for block in self.t.blocks:
-                            if not block.check_x(1, self.t.bm.blocks):
-                                can_move = False
-                        if can_move:
-                            for block in self.t.blocks:
-                                block.position.x += block.side_length
-                            self.t.rotation_center.x += Block.side_length
-                            moved_sideways = True
-                    elif event.key == pygame.K_r or event.key == pygame.K_w or event.key == pygame.K_UP:
-                        self.rotate_tetrominoe(1)
-                    elif event.key == pygame.K_SPACE:
+                    # if event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                    #     can_move = True
+                    #     for block in self.t.blocks:
+                    #         if not block.check_x(-1, self.t.bm.blocks):
+                    #             can_move = False
+                    #     if can_move:
+                    #         for block in self.t.blocks:
+                    #             block.position.x -= block.side_length
+                    #         self.t.rotation_center.x -= Block.side_length
+                    #         moved_sideways = True
+                    # elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                    #     can_move = True
+                    #     for block in self.t.blocks:
+                    #         if not block.check_x(1, self.t.bm.blocks):
+                    #             can_move = False
+                    #     if can_move:
+                    #         for block in self.t.blocks:
+                    #             block.position.x += block.side_length
+                    #         self.t.rotation_center.x += Block.side_length
+                    #         moved_sideways = True
+                    # elif event.key == pygame.K_r or event.key == pygame.K_w or event.key == pygame.K_UP:
+                    #     self.rotate_tetrominoe(1)
+                    if event.key == pygame.K_SPACE:
+                        self.t.hard_dropped = True
                         self.t.just_spawned = False
+                        self.t.falling = True
                         for block, new in zip(self.t.blocks, self.preview.blocks):
                             block.position = new.position
                             block.falling = True
                             if not self.t.effects_added:
                                 self.effects.append(BlockHit(block,250,3,self.effects))
                         self.t.effects_added = True
+                        self.t.rotation_center.y += 30 * self.preview.moves_down
                         # self.effects.append(HardDrop2(self.t.blocks,self.effects))
                     elif event.key == pygame.K_ESCAPE:
                         self.paused = True
@@ -577,12 +655,16 @@ class TetrominoeManager:
             for pos, block in zip(rotated_positions, self.t.blocks):
                 # print(block.position, pos)
                 block.position = pygame.Vector2(pos) + pygame.Vector2(x * Block.side_length, y * Block.side_length)
+
             can_move = True
             for block in self.t.blocks:
                 if block.is_colliding(self.t.bm.blocks):
                     can_move = False
             if can_move:
                 rotated = True
+                for block in self.t.blocks:
+                    block.falling = True
+                self.t.falling = True
                 break
         if not rotated:
             for block, t in zip(self.t.blocks, temp):
@@ -603,6 +685,7 @@ class Preview:
 
     def __init__(self, blocks):
         self.blocks = deepcopy(blocks)
+        self.moves_down = 0
 
     def check_y(self, b, block_list):  # Note for later, add type annotation
         if b.position.y + b.side_length >= SCREEN_HEIGHT - b.side_length:
@@ -618,6 +701,8 @@ class Preview:
         return True
 
     def update(self, blocks, otherblocks):
+        self.moves_down = 0
+
         self.blocks = deepcopy(blocks)
         positions = {(b.position.x, b.position.y): b for b in self.blocks}
         other_blocks = deepcopy(otherblocks)
@@ -635,6 +720,7 @@ class Preview:
                 if can_move:
                     for block in self.blocks:
                         block.position.y += block.side_length
+                    self.moves_down += 1
 
                 else:
                     break
