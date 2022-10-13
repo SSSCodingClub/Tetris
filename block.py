@@ -356,7 +356,7 @@ class Tetrominoe:
                 self.falling = False
                 for block in self.blocks:
                     block.falling = False
-                    block.is_controlled = False
+                    # block.is_controlled = False
 
 
 
@@ -461,6 +461,8 @@ class TetrominoeManager:
         return False
 
     def reset_tetrominoe(self):
+        for block in self.t.blocks:
+            block.is_controlled = False
         self.t = Tetrominoe(self.bm)
         self.preview = Preview(self.t.blocks)
         self.rotations = 0
