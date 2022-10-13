@@ -1,3 +1,0 @@
-TODO
-sounds effects (block on ground, game over, line clear - make arcade sounding)
-
