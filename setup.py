@@ -24,7 +24,7 @@ clock = pygame.time.Clock()
 fps = 60
 
 mixer.music.load('TetrisTheme.wav')
-mixer.music.set_volume(0.15)
+mixer.music.set_volume(0.10)
 mixer.music.play(-1)
 
 sounds = {
