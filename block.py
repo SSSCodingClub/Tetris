@@ -93,18 +93,25 @@ class Block:
         # return pygame.Rect(self.position + pygame.Vector2(dx, dy), (self.side_length, self.side_length))
 
     def draw(self, surf: pygame.Surface, wireframe=False):
-        if wireframe:
-            # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            pygame.draw.rect(surf, self.colour, self.get_rect(), self.bezel)
-            # pygame.draw.rect(surf, Colour.GRAY,
-            #                  self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
-            # output.set_alpha(128)
-            # surf.blit(output,(0,0))
+
+        if self.is_controlled:
+            pygame.draw.rect(surf, (255,0,0), self.get_rect())
+        elif self.falling:
+            pygame.draw.rect(surf, (0,255,0), self.get_rect())
         else:
-            pygame.draw.rect(surf, self.colour, self.get_rect())
-            pygame.draw.rect(surf, self.outline_colour, self.get_rect(), self.bezel)
-            # pygame.draw.rect(surf, self.colour,
-            #                  self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
+            pygame.draw.rect(surf, (0,0,255), self.get_rect())
+        # if wireframe:
+        #     # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        #     pygame.draw.rect(surf, self.colour, self.get_rect(), self.bezel)
+        #     # pygame.draw.rect(surf, Colour.GRAY,
+        #     #                  self.get_rect(self.bezel, self.bezel, self.side_length - 2 * self.bezel))
+        #     # output.set_alpha(128)
+        #     # surf.blit(output,(0,0))
+        # else:
+        #     pygame.draw.rect(surf, self.colour, self.get_rect())
+        #     pygame.draw.rect(surf, self.outline_colour, self.get_rect(), self.bezel)
+        #     # pygame.draw.rect(surf, self.colour,
+        #     #                  self.get_rect(dx=self.bezel, dy=self.bezel, side=self.side_length - 2 * self.bezel))
 
 
 class BlockManager:
@@ -114,43 +121,43 @@ class BlockManager:
         self.falling_bits = []
         self.effects = effects
         self.grid = [[None for i in range(12)] for i in range(21)]
-        # temp = []
-        # for i in range(10):
-        #     for j in range(5):
-        #         temp.append((i,j))
-        # temp.remove((1,0))
-        # temp.remove((7,0))
-        # temp.remove((8,0))
-        # temp.remove((8,1))
-        # temp.remove((9,1))
-        # temp.remove((9,2))
-        # temp.remove((1,3))
-        # temp.remove((3,4))
-        # for x,y in temp:
-        #     self.blocks.append(Block(((x+1) * 30, (20-y-1) * 30), Colour.RED))
-        #     self.blocks[-1].falling= False
         temp = []
         for i in range(10):
-            for j in range(10):
+            for j in range(5):
                 temp.append((i,j))
-        temp.remove((4,0))
-        temp.remove((4,1))
-        temp.remove((6,1))
-
-        temp.remove((0,2))
-        temp.remove((0,3))
-        temp.remove((0,4))
-        temp.remove((0,5))
-        temp.remove((0,6))
-        temp.remove((0,7))
-        temp.remove((0,8))
-        temp.remove((0,9))
-
-
-
+        temp.remove((1,0))
+        temp.remove((7,0))
+        temp.remove((8,0))
+        temp.remove((8,1))
+        temp.remove((9,1))
+        temp.remove((9,2))
+        temp.remove((1,3))
+        temp.remove((3,4))
         for x,y in temp:
             self.blocks.append(Block(((x+1) * 30, (20-y-1) * 30), Colour.RED))
             self.blocks[-1].falling= False
+        # temp = []
+        # for i in range(10):
+        #     for j in range(10):
+        #         temp.append((i,j))
+        # temp.remove((4,0))
+        # temp.remove((4,1))
+        # temp.remove((6,1))
+        #
+        # temp.remove((0,2))
+        # temp.remove((0,3))
+        # temp.remove((0,4))
+        # temp.remove((0,5))
+        # temp.remove((0,6))
+        # temp.remove((0,7))
+        # temp.remove((0,8))
+        # temp.remove((0,9))
+        #
+        #
+        #
+        # for x,y in temp:
+        #     self.blocks.append(Block(((x+1) * 30, (20-y-1) * 30), Colour.RED))
+        #     self.blocks[-1].falling= False
         self.falling_bits = []
         self.sort_blocks()
         # self.add_block(Block((Block.side_length, Block.side_length * 5), Colour.RED))
@@ -290,7 +297,7 @@ class BlockManager:
 
 
 class Tetrominoe:
-    gravity_time: int = 400
+    gravity_time: int = 4000
     # https://tetris.fandom.com/wiki/Tetromino refer to this for names
     shapes: dict = {
         "O": ((1, 1), (0, 1), (0, 0), (1, 0)),
@@ -417,6 +424,7 @@ class Tetrominoe:
                 check_y,still_falling = block.check_y(self.bm.blocks, self.is_controlled)
                 if not check_y:
                     can_move = False
+
             if can_move:
                 self.just_spawned = False
                 for block in self.blocks:
@@ -430,6 +438,10 @@ class Tetrominoe:
                     self.falling = False
                     for block in self.blocks:
                         block.falling = False
+                else:
+                    self.falling = True
+                    for block in self.blocks:
+                        block.falling = True
                         # block.is_controlled = False
                 # self.bm.falling_bits.clear()
                 # self.bm.detect_tetrominoes(self.bm.grid)
@@ -443,7 +455,7 @@ class TetrominoeManager:
     delay_time = 500
 
     def __init__(self, block_manager, effects):
-        Tetrominoe.gravity_time = 400
+        Tetrominoe.gravity_time = 4000
         self.t: Tetrominoe = Tetrominoe(block_manager)
         self.preview = Preview(self.t.blocks)
         self.effects = effects
@@ -464,9 +476,10 @@ class TetrominoeManager:
         if self.t.just_spawned:
             collided = False
             for block in self.t.blocks:
-                if block.is_colliding(self.t.bm.blocks) or not block.check_y(self.t.bm.blocks, True)[0]:
+                cy, still_falling = block.check_y(self.t.bm.blocks, True)
+                if block.is_colliding(self.t.bm.blocks) or not cy:
                     collided = True
-            if collided:
+            if collided and not still_falling:
                 self.t.falling = False
                 for block in self.t.blocks:
                     block.falling = False
