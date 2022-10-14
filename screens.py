@@ -149,14 +149,14 @@ class Pause:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.copied_bg = False
-                    mixer.music.set_volume(0.25)
+                    mixer.music.set_volume(0.1)
 
                     self.unpaused = True
                     return True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 self.copied_bg = False
                 self.unpaused = True
-                mixer.music.set_volume(0.25)
+                mixer.music.set_volume(0.1)
 
                 return True
         return False

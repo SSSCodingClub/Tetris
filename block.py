@@ -252,7 +252,7 @@ class BlockManager:
 
 
 class Tetrominoe:
-    gravity_time: int = 400
+    gravity_time: int = 750
     # https://tetris.fandom.com/wiki/Tetromino refer to this for names
     shapes: dict = {
         "O": ((1, 1), (0, 1), (0, 0), (1, 0)),
@@ -349,6 +349,7 @@ class Tetrominoe:
             self.is_controlled = False
 
         self.hard_dropped = False
+        self.dropped = False
 
         self.time: int = 0
         self.falling: bool = True
@@ -358,6 +359,14 @@ class Tetrominoe:
         self.speed_modifier = 1
 
     def update(self, delta: int) -> bool:
+        # can_fall = True
+        # for block in self.blocks:
+        #     if not block.check_y(self.bm.blocks)[0]:
+        #         can_fall = False
+        # if can_fall:
+        #     self.falling = True
+
+        
         if self.falling:
             temp = self.move(delta)
             if not self.effects_added:
@@ -386,12 +395,17 @@ class Tetrominoe:
                 sounds["move"].play()
                 self.rotation_center.y += Block.side_length
             else:
+                self.dropped = True
                 if self.just_spawned:
                     return True
                 if not still_falling:
                     self.falling = False
                     for block in self.blocks:
                         block.falling = False
+                else:
+                    self.falling = True
+                    for block in self.blocks:
+                        block.falling = True
                         # block.is_controlled = False
                 # self.bm.falling_bits.clear()
                 # self.bm.detect_tetrominoes(self.bm.grid)
@@ -402,10 +416,10 @@ class Tetrominoe:
 
 
 class TetrominoeManager:
-    delay_time = 500
+    delay_time = 350
 
     def __init__(self, block_manager, effects):
-        Tetrominoe.gravity_time = 400
+        Tetrominoe.gravity_time = 750
         self.t: Tetrominoe = Tetrominoe(block_manager)
         self.preview = Preview(self.t.blocks)
         self.effects = effects
@@ -436,7 +450,7 @@ class TetrominoeManager:
 
         self.paused = False
         pressed = pygame.key.get_pressed()
-        if not self.t.hard_dropped:
+        if not (self.t.dropped or self.t.hard_dropped):
             if pressed[pygame.K_s] or pressed[pygame.K_DOWN]:
                 self.t.speed_modifier = 5
             else:
@@ -550,6 +564,8 @@ class TetrominoeManager:
 
 
         if self.t.update(delta):  # if collides with block after just spawning
+            self.effects=[]
+
             return True
 
         self.preview.update(self.t.blocks, self.bm.blocks)
@@ -557,7 +573,7 @@ class TetrominoeManager:
             if e not in self.effects:
                 self.effects.append(e)
                 self.effects[-1].effects = self.effects
-        if not self.t.falling:
+        if not self.t.falling: #self.t.dropped or
             if self.delay >= self.delay_time:
                 self.reset_tetrominoe()
                 self.delay = 0
@@ -687,7 +703,7 @@ class TetrominoeManager:
         #     self.t.blocks = deepcopy(temp)
 
     def draw(self, surf):
-        if self.t.falling:
+        if self.t.falling and not self.t.hard_dropped:
             self.preview.draw(surf)
         # self.t.draw(surf)
 
