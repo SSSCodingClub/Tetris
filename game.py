@@ -35,13 +35,14 @@ class Game:
 
         for effect in self.effects:
             effect.update(delta)
+        self.score += self.bm.update(delta)
+
         if self.tm.update(delta):
             self.next_scene = "GameOver"
 
         # if self.tm.paused:
         #     self.next_scene = "Pause"
 
-        self.score += self.bm.update(delta)
 
 
         # print(self.score)

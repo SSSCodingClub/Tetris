@@ -43,8 +43,8 @@ class Block:
                 return True
         return False
 
-    def check_y(self, block_list,is_tetromino_controlled=False):  # Note for later, add type annotation
-        if self.position.y + self.side_length >= SCREEN_HEIGHT - Block.side_length:
+    def check_y(self, block_list,is_tetromino_controlled=False, dy=1):  # Note for later, add type annotation
+        if self.position.y + self.side_length * dy >= SCREEN_HEIGHT - Block.side_length:
              return False, False
         if is_tetromino_controlled:
             still_falling = False
@@ -53,11 +53,11 @@ class Block:
                     continue
 
                 if block is not self:
-                    if self.get_rect(dy=self.side_length).colliderect(block.get_rect()):
+                    if self.get_rect(dy=self.side_length*dy).colliderect(block.get_rect()):
                         # self.position.y = block.position.y - self.side_length
                         if block.falling:
                             still_falling = True
-                            return True, True
+                            return False, True
                         return False, False
         else:
             for block in block_list:
@@ -94,6 +94,12 @@ class Block:
         # return pygame.Rect(self.position + pygame.Vector2(dx, dy), (self.side_length, self.side_length))
 
     def draw(self, surf: pygame.Surface, wireframe=False):
+        # pygame.draw.rect(surf,(0,0,0),self.get_rect())
+        # if self.is_controlled:
+        #     pygame.draw.rect(surf,(255,0,0),self.get_rect())
+        # if self.falling:
+        #     pygame.draw.rect(surf,(0,255,0),self.get_rect(),3)
+
         if wireframe:
             # output = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
             pygame.draw.rect(surf, self.colour, self.get_rect(), self.bezel)
@@ -314,7 +320,7 @@ class Tetrominoe:
 
             colour = random.choice(self.colours)
             self.shape = random.choice(list(self.shapes.keys()))
-            # self.shape = "T"
+            # self.shape = "O"
             for coords in self.shapes[self.shape]:
                 x, y = coords
                 self.blocks.append(Block(((x + 5) * Block.side_length, y * Block.side_length), colour))
@@ -375,6 +381,10 @@ class Tetrominoe:
                     if not block.check_y(self.bm.blocks)[0]:
                         self.effects.append(BlockHit(block,250,3,self.effects))
                         self.effects_added = True
+                # self.falling = False
+                # for block in self.blocks:
+                #     block.falling = False
+
 
             return temp
 
@@ -542,10 +552,10 @@ class TetrominoeManager:
                     if event.key == pygame.K_SPACE:
                         self.t.hard_dropped = True
                         self.t.just_spawned = False
-                        self.t.falling = True
+                        self.t.falling = self.preview.still_falling
                         for block, new in zip(self.t.blocks, self.preview.blocks):
                             block.position = new.position
-                            block.falling = True
+                            block.falling = self.preview.still_falling
                             if not self.t.effects_added:
                                 self.effects.append(BlockHit(block,250,3,self.effects))
                         self.t.effects_added = True
@@ -716,6 +726,7 @@ class Preview:
     def __init__(self, blocks):
         self.blocks = deepcopy(blocks)
         self.moves_down = 0
+        self.still_falling = False
 
     def check_y(self, b, block_list):  # Note for later, add type annotation
         if b.position.y + b.side_length >= SCREEN_HEIGHT - b.side_length:
@@ -727,11 +738,14 @@ class Preview:
             else:
                 if b.get_rect(dy=Block.side_length).colliderect(block.get_rect()):
                     # self.position.y = block.position.y - self.side_length
+                    if b.falling:
+                        self.still_falling = True
                     return False
         return True
 
     def update(self, blocks, otherblocks):
         self.moves_down = 0
+        self.still_falling = False
 
         self.blocks = deepcopy(blocks)
         positions = {(b.position.x, b.position.y): b for b in self.blocks}
