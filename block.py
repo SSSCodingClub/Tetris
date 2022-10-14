@@ -57,7 +57,8 @@ class Block:
                         # self.position.y = block.position.y - self.side_length
                         if block.falling:
                             still_falling = True
-                        return False, still_falling
+                            return True, True
+                        return False, False
         else:
             for block in block_list:
                 if block.falling:
@@ -386,8 +387,10 @@ class Tetrominoe:
             can_move = True
             for block in self.blocks:
                 check_y,still_falling = block.check_y(self.bm.blocks, self.is_controlled)
+
                 if not check_y:
                     can_move = False
+
             if can_move:
                 self.just_spawned = False
                 for block in self.blocks:
@@ -416,7 +419,7 @@ class Tetrominoe:
 
 
 class TetrominoeManager:
-    delay_time = 350
+    delay_time = 750
 
     def __init__(self, block_manager, effects):
         Tetrominoe.gravity_time = 750

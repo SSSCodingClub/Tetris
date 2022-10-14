@@ -22,12 +22,14 @@ class Particle:
         self.velocity.x += self.acceleration.x * delta/1000
         self.velocity.y += self.acceleration.y * delta/1000
         self.r = pygame.Rect(self.position, (self.side, self.side))
-
+        if self.position.y >=SCREEN_HEIGHT:
+            del self
         # print(delta)
 
     def draw(self,surf):
-        pygame.draw.rect(surf,self.colour,self.r)
-        pygame.draw.rect(surf,self.outline_colour,self.r,2)
+        if self.position.y < SCREEN_HEIGHT:
+            pygame.draw.rect(surf,self.colour,self.r)
+            pygame.draw.rect(surf,self.outline_colour,self.r,2)
 
 class BlockHit:
 
@@ -44,8 +46,13 @@ class BlockHit:
         for e in self.particles:
             e.update(delta)
         if self.time >= 10000:
+            for i in self.particles:
+                if i in self.particles:
+                    del i
             if self in self.effects:
                 self.effects.remove(self)
+
+                del self
 
     def draw(self, surf):
         for e in self.particles:
@@ -76,6 +83,8 @@ class LineClear:
 
         if self.time >= self.min_time:
             self.effect_list.remove(self)
+            del self
+            return
 
         self.time += delta
 
