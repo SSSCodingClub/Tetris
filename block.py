@@ -423,6 +423,7 @@ class Tetrominoe:
                     block.position.y += block.side_length
                 sounds["move"].play()
                 self.rotation_center.y += Block.side_length
+                self.effects_added = False
                 self.falling = True
                 for block in self.blocks:
                     block.falling = True
@@ -434,6 +435,8 @@ class Tetrominoe:
                 if self.just_spawned:
                     return True
                 if still_falling:
+                    self.effects_added = False
+
                     self.falling = True
                     for block in self.blocks:
                         block.falling = True
