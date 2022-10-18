@@ -1,5 +1,6 @@
 from setup import *
 
+
 class Block:
     side_length = 30
 
