@@ -532,15 +532,19 @@ class TetrominoeManager:
                 self.right_move_ticker = 0
                 self.right_moves = 0
 
-            if pressed[pygame.K_w] or pressed[pygame.K_UP] or pressed[pygame.K_r]:
+            if pressed[pygame.K_w] or pressed[pygame.K_UP] or pressed[pygame.K_r] or pressed[pygame.K_z]:
                 self.rotational_move_ticker += delta
                 if self.rotational_moves == 0 or self.rotational_move_ticker > 275 and self.t.falling:
                     self.rotational_move_ticker = 0
                     self.rotational_moves += 1
-                    self.rotate_tetrominoe(1)
+                    if pressed[pygame.K_z]:
+                        self.rotate_tetrominoe(-1) # counter clockwise
+                    else:
+                        self.rotate_tetrominoe(1)
             else:
                 self.rotational_move_ticker = 0
                 self.rotational_moves = 0
+
 
         if self.t.falling:
 
