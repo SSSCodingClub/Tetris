@@ -12,3 +12,11 @@ __pycache__/game.cpython-310.pyc
 .idea/.name
 *.pyc
 *.iml
+*.spec
+*.manifest
+*.toc
+*.zip
+*.pyz
+*.html
+build/main/warn-main.txt
+*.pkg
