@@ -18,6 +18,7 @@ class Block:
     def is_colliding(self, block_list, is_tetromino_controlled=False):
         if (not (self.side_length <= self.position.x <= SCREEN_WIDTH - self.side_length * 2 and
                  0 <= self.position.y <= SCREEN_HEIGHT - self.side_length * 2)):  # to account for block + wall
+            # print(1)
             return True
         # if is_tetromino_controlled:
         #     for block in block_list:
@@ -40,6 +41,7 @@ class Block:
             if block is self:  # or block.falling:
                 continue
             if block.get_rect().colliderect(self.get_rect()):
+                # print(2)
                 return True
         return False
 
@@ -300,24 +302,24 @@ class Tetrominoe:
     # J, L, S, T, Z Tetromino Wall Kick Data
     wall_kicks = {
         "0-1": ((0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)),
-        "3-0": ((0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)),
+        "1-0": ((0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)),
         "1-2": ((0, 0), (+1, 0), (+1, +1), (0, -2), (+1, -2)),
-        "2-3": ((0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)),
-        # "2-L": ((0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)),
-        # "L-2": ((0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)),
-        # "L-0": ((0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)),
-        # "0-L": ((0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2))
+        "2-1": ((0, 0), (-1, 0), (-1, -1), (0, +2), (-1, +2)),
+        "2-3": ((0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2)),
+        "3-2": ((0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)),
+        "3-0": ((0, 0), (-1, 0), (-1, +1), (0, -2), (-1, -2)),
+        "0-3": ((0, 0), (+1, 0), (+1, -1), (0, +2), (+1, +2))
     }
     # I Tetromino Wall Kick Data
     I_wall_kicks = {
         "0-1": ((0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)),
-        "3-0": ((0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)),
+        "1-0": ((0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)),
         "1-2": ((0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1)),
-        "2-3": ((0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)),
-        # "2-L": ((0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)),
-        # "L-2": ((0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)),
-        # "L-0": ((0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)),
-        # "0-L": ((0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1))
+        "2-1": ((0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)),
+        "2-3": ((0, 0), (+2, 0), (-1, 0), (+2, -1), (-1, +2)),
+        "3-2": ((0, 0), (-2, 0), (+1, 0), (-2, +1), (+1, -2)),
+        "3-0": ((0, 0), (+1, 0), (-2, 0), (+1, +2), (-2, -1)),
+        "0-3": ((0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1))
     }
 
     colours = [Colour.RED, Colour.PURPLE, Colour.BLUE, Colour.AQUA, Colour.ORANGE, Colour.YELLOW, Colour.GREEN]
@@ -450,6 +452,8 @@ class Tetrominoe:
 
         return False
 
+    # def draw(self,surf):
+    #     pygame.draw.rect(surf,Colour.RED,pygame.Rect(self.rotation_center,(30,30)))
 
 class TetrominoeManager:
     delay_time = 750
@@ -705,7 +709,7 @@ class TetrominoeManager:
 
         # Wall kicks
         # DANGER! now entering nerd territory. https://tetris.wiki/Super_Rotation_System#Wall_Kicks
-
+        temp_rotation_center = self.t.rotation_center
         temp = []
         for block in self.t.blocks:
             temp.append(block.position)
@@ -720,10 +724,11 @@ class TetrominoeManager:
             for pos, block in zip(rotated_positions, self.t.blocks):
                 # print(block.position, pos)
                 block.position = pygame.Vector2(pos) + pygame.Vector2(x * Block.side_length, y * Block.side_length)
-
+            self.t.rotation_center = temp_rotation_center + pygame.Vector2(x * Block.side_length, y * Block.side_length)
             can_move = True
             for block in self.t.blocks:
                 if block.is_colliding(self.bm.blocks, True):
+                    # print(block.position, (x,y))
                     can_move = False
             if can_move:
                 rotated = True
@@ -733,8 +738,11 @@ class TetrominoeManager:
                 self.t.falling = True
                 break
         if not rotated:
+            self.rotations -= 1
+            self.rotations %= 4
             for block, t in zip(self.t.blocks, temp):
                 block.position = t
+            self.t.rotation_center = temp_rotation_center
         # if rotated:
         #     def get_y(b):
         #         return b.position.y
