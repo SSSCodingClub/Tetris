@@ -59,7 +59,7 @@ class Block:
                             still_falling = True
                             return False, True
                         return False, False
-        else:
+        else: # Issue with this. bug happens when lots of line clears at same time and blocks end up floating. maybe have a list passed through that tells u which tetrominoes are part of that block.
             for block in block_list:
                 if block.falling:
                     continue
