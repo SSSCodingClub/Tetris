@@ -48,9 +48,8 @@ class Tetromino:
     }
 
     
-    def __init__(self, global_blocks):
-        # self.shape = random.choice(list(self.shapes.keys()))
-        self.shape = "I"
+    def __init__(self, global_blocks, shape):
+        self.shape = shape
         self.colour = random.choice(self.colours)
         self.blocks = []
         for x,y in self.shapes[self.shape]:
@@ -67,8 +66,6 @@ class Tetromino:
 
         self.rotations = 0
         self.rotation_center = pygame.Vector2((-1 + 6) * Block.side_length, -1 * Block.side_length)
-
-
 
     def update(self, delta):
         self.time += delta
