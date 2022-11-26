@@ -1,6 +1,8 @@
 import pygame
 import time
 import random
+import math
+
 
 pygame.init()
 
@@ -28,3 +30,7 @@ AQUA = (0, 225, 255)
 ORANGE = (255, 136, 0)
 YELLOW = (255, 225, 0)
 GREEN = (0, 255, 17)
+
+COMMAND_EXIT = 0
+COMMAND_START = 1
+COMMAND_GAME_OVER = 2

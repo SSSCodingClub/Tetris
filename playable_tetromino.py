@@ -54,47 +54,23 @@ class PlayableTetromino(Tetromino):
         self.blocks = []
 
         for x,y in self.shapes[self.shape]:
-            self.blocks.append(Block(((6 + x) * Block.side_length, y * Block.side_length), self.colour))
-        
-        self.other_blocks = global_blocks[:] # global_blocks.copy
+            self.blocks.append(Block(((6 + x) * Block.side_length, y * Block.side_length), self.colour))       
 
         for b in self.blocks:
             global_blocks.append(b)
 
         self.rotations = 0
         self.rotation_center = pygame.Vector2((-1 + 6) * Block.side_length, -1 * Block.side_length)
-    
-    def update(self, delta):
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_d:
-                    can_move = True
-                    for block in self.blocks:
-                        if not block.can_move_right(self.other_blocks):
-                            can_move = False
-                    if can_move:
-                        for block in self.blocks:
-                            block.position.x += block.side_length
-                        self.rotation_center.x += Block.side_length
-                            
-                elif event.key == pygame.K_a:
-                    can_move = True
-                    for block in self.blocks:
-                        if not block.can_move_left(self.other_blocks):
-                            can_move = False
-                    if can_move:
-                        for block in self.blocks:
-                            block.position.x -= block.side_length
-                        self.rotation_center.x -= Block.side_length
+        
+        self.game_over = False
 
-                elif event.key == pygame.K_s:
-                    self.move_down()
-                elif event.key == pygame.K_r:
-                    self.rotate()
+        for block in self.blocks:
+            if block.is_colliding(block.position, self.other_blocks, self.blocks):
+                self.game_over = True
+
+    def update(self, delta):
         if super().update(delta):
             self.rotation_center.y += Block.side_length
-
-
 
     def rotate(self): # rotate the tetromino
         if self.shape == "O":
@@ -151,7 +127,7 @@ class PlayableTetromino(Tetromino):
             rotated = True
             for block,position in zip(self.blocks, new_block_positions):
                 if block.is_colliding(pygame.Vector2(position) + 
-                    pygame.Vector2(test_x * Block.side_length,test_y * Block.side_length), self.other_blocks):
+                    pygame.Vector2(test_x * Block.side_length,test_y * Block.side_length), self.other_blocks, self.blocks):
                     rotated = False
             
             if rotated:

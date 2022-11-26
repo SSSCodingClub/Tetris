@@ -1,7 +1,9 @@
 from setup import *
 from game import Game
+from start import Start
+from game_over import GameOver
 
-game = Game()
+scene = Start()
 
 is_running = True
 
@@ -11,16 +13,16 @@ previous_time = time.time()
 while is_running:
     delta_time = time.time() - previous_time
     previous_time = time.time()
-    #RGB
-    screen.fill((0, 0, 0))
-    
-    #Event listener
-    for event in pygame.event.get(pygame.QUIT):
-        if event.type == pygame.QUIT:
-            is_running = False
 
-    game.update(delta_time * 1000) # 1000 ms in 1 sec
-    game.draw(screen)
+    status = scene.update(delta_time * 1000) # 1000 ms in 1 sec
+    if status == COMMAND_EXIT:
+        is_running = False
+    elif status == COMMAND_START:
+        scene = Game()
+    elif status == COMMAND_GAME_OVER:
+        scene = GameOver()
+
+    scene.draw(screen)
 
     pygame.display.update()
 

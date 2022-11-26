@@ -21,23 +21,56 @@ class Game:
 
     
     def update(self, delta):
+        #Event listener
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return COMMAND_EXIT
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_d:
+                    can_move = True
+                    for block in self.tetromino.blocks:
+                        if not block.can_move_right(self.tetromino.other_blocks, self.tetromino.blocks):
+                            can_move = False
+                    if can_move:
+                        for block in self.tetromino.blocks:
+                            block.position.x += block.side_length
+                        self.tetromino.rotation_center.x += Block.side_length
+                            
+                elif event.key == pygame.K_a:
+                    can_move = True
+                    for block in self.tetromino.blocks:
+                        if not block.can_move_left(self.tetromino.other_blocks, self.tetromino.blocks):
+                            can_move = False
+                    if can_move:
+                        for block in self.tetromino.blocks:
+                            block.position.x -= block.side_length
+                        self.tetromino.rotation_center.x -= Block.side_length
+
+                elif event.key == pygame.K_s:
+                    self.tetromino.move_down()
+                    self.tetromino.rotation_center.y += Block.side_length
+                elif event.key == pygame.K_r:
+                    self.tetromino.rotate()
+                    
         for i, t in enumerate(self.tetrominos_list):
             t.update(delta)
             if t.has_fallen:
                 del self.tetrominos_list[i]
 
-
-
         self.tetromino.update(delta)
         if self.tetromino.has_fallen:
             self.counter += 1
             self.tetromino = PlayableTetromino(self.global_blocks, self.cycle[self.counter % len(self.cycle)])
+        
+        if self.tetromino.game_over:
+            return COMMAND_GAME_OVER
 
         grid = [[None for i in range(GRID_LENGTH)] for i in range(GRID_HEIGHT)]
 
 
         for block in self.global_blocks:
-            grid[int(block.position.y // Block.side_length)][int(block.position.x // Block.side_length)] = block
+            if block.has_fallen:
+                grid[int(block.position.y // Block.side_length)][int(block.position.x // Block.side_length)] = block
 
 
         cleared_line = False
@@ -103,11 +136,10 @@ class Game:
                     DFS(x, y, current_tetromino)
                     self.tetrominos_list.append(Tetromino(self.global_blocks, current_tetromino))
         
-            
-            
-            
-
     def draw(self, screen):
+        #RGB
+        screen.fill(BLACK)
+
         for block in self.global_blocks:
             block.draw(screen)
         self.walls.draw(screen)

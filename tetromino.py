@@ -9,13 +9,11 @@ class Tetromino:
     def __init__(self, global_blocks, blocks):
         self.blocks = blocks
 
-        self.other_blocks = []
-        for block in global_blocks:
-            if block not in self.blocks:
-                self.other_blocks.append(block)
+        self.other_blocks = global_blocks
         
         self.time = 0
         self.has_fallen = False
+
         
 
     def update(self, delta):
@@ -30,7 +28,7 @@ class Tetromino:
     def move_down(self):
         can_move = True
         for block in self.blocks:
-            if not block.can_move_down(self.other_blocks):
+            if not block.can_move_down(self.other_blocks, self.blocks):
                 can_move = False
 
         if can_move:
