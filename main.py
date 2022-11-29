@@ -20,7 +20,7 @@ while is_running:
     elif status == COMMAND_START:
         scene = Game()
     elif status == COMMAND_GAME_OVER:
-        scene = GameOver()
+        scene = GameOver(scene.score)
 
     scene.draw(screen)
 

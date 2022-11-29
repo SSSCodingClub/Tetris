@@ -14,6 +14,7 @@ dimensions = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
 #Display screen
 screen = pygame.display.set_mode(dimensions)
+screen_center = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
 #Screen name
 pygame.display.set_caption("Tetris")
