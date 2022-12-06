@@ -73,7 +73,8 @@ class Block:
     def move_down(self):
         self.position.y += self.side_length
       
-    def draw(self, screen):
+    def draw(self, screen, filled=True): # this will not change any previous code
         rect = pygame.Rect(self.position.x, self.position.y, self.side_length, self.side_length)
-        pygame.draw.rect(screen, self.colour, rect)
+        if filled:
+            pygame.draw.rect(screen, self.colour, rect)
         pygame.draw.rect(screen, self.outline_colour, rect, width = self.bezel)

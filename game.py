@@ -3,6 +3,7 @@ from block import Block
 from tetromino import Tetromino
 from playable_tetromino import PlayableTetromino
 from walls import Walls
+from preview import Preview
 
 
 class Game:
@@ -11,13 +12,18 @@ class Game:
         self.global_blocks = []
         self.cycle = self.get_cycle()
         self.counter = 0
-        self.tetromino = PlayableTetromino(self.global_blocks, self.cycle[0])
+
+        self.effects = []
+
+        self.tetromino = PlayableTetromino(self.global_blocks, self.cycle[0], self.effects)
 
         self.walls = Walls()
 
         self.score = 0
 
         self.tetrominos_list = []
+
+        self.preview = Preview()
 
     
     def update(self, delta):
@@ -49,8 +55,11 @@ class Game:
                 elif event.key == pygame.K_s:
                     self.tetromino.move_down()
                     self.tetromino.rotation_center.y += Block.side_length
+                    
                 elif event.key == pygame.K_r:
                     self.tetromino.rotate()
+                elif event.key == pygame.K_SPACE:
+                    self.tetromino.hard_drop()
                     
         for i, t in enumerate(self.tetrominos_list):
             t.update(delta)
@@ -60,7 +69,7 @@ class Game:
         self.tetromino.update(delta)
         if self.tetromino.has_fallen:
             self.counter += 1
-            self.tetromino = PlayableTetromino(self.global_blocks, self.cycle[self.counter % len(self.cycle)])
+            self.tetromino = PlayableTetromino(self.global_blocks, self.cycle[self.counter % len(self.cycle)], self.effects)
         
         if self.tetromino.game_over:
             return COMMAND_GAME_OVER
@@ -82,7 +91,6 @@ class Game:
                     block_counter += 1
             
             if block_counter >= GRID_LENGTH - 2:
-                print("Line Clear!")
                 self.score += 1
 
                 for block in row:
@@ -90,16 +98,21 @@ class Game:
                         self.global_blocks.remove(block)
                 
                 grid[r] = [None for i in range(GRID_LENGTH)]
+
+                if self.score % 10 == 0:
+                    Tetromino.gravity_time = max(100, Tetromino.gravity_time - 10)
+
                 cleared_line = True
         
         if cleared_line:
             self.detect_tetrominos(grid)
         
-        # # printing out the grid do not need to copy
-        # print()
-        # for row in grid:
-        #     print(*row)
-        # print()
+        self.preview.update(self.tetromino)
+        for effect in self.effects:
+            effect.update(delta)
+            if effect.is_finished():
+                self.effects.remove(effect)
+            
 
     def detect_tetrominos(self, grid):
         seen = set()
@@ -134,7 +147,7 @@ class Game:
                 if isinstance(val, Block) and val not in seen:
                     current_tetromino = []
                     DFS(x, y, current_tetromino)
-                    self.tetrominos_list.append(Tetromino(self.global_blocks, current_tetromino))
+                    self.tetrominos_list.append(Tetromino(self.global_blocks, current_tetromino, self.effects))
         
     def draw(self, screen):
         #RGB
@@ -143,6 +156,11 @@ class Game:
         for block in self.global_blocks:
             block.draw(screen)
         self.walls.draw(screen)
+        self.preview.draw(screen)
+
+        for effect in self.effects:
+            effect.draw(screen)
+
 
 
     def get_cycle(self):

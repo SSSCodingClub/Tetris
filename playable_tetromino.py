@@ -47,9 +47,10 @@ class PlayableTetromino(Tetromino):
         "0-3": ((0, 0), (-1, 0), (+2, 0), (-1, -2), (+2, +1))
     }
 
-    def __init__(self, global_blocks, shape):
-        super().__init__(global_blocks, [])
-        self.shape = shape
+    def __init__(self, global_blocks, shape, effects=None):
+        super().__init__(global_blocks, [], effects)
+        #self.shape = shape
+        self.shape = "I"
         self.colour = random.choice(self.colours)
         self.blocks = []
 
@@ -71,6 +72,14 @@ class PlayableTetromino(Tetromino):
     def update(self, delta):
         if super().update(delta):
             self.rotation_center.y += Block.side_length
+
+    def hard_drop(self):
+        while not self.has_fallen:
+            self.move_down()
+        
+        self.has_fallen = False
+        for block in self.blocks:
+            block.has_fallen = False
 
     def rotate(self): # rotate the tetromino
         if self.shape == "O":

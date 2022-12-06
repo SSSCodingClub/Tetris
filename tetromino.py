@@ -1,12 +1,13 @@
 from setup import *
 from block import Block
+from particles import BlockFall
 
 
 class Tetromino:
     gravity_time = 250
 
     
-    def __init__(self, global_blocks, blocks):
+    def __init__(self, global_blocks, blocks, effects=None):
         self.blocks = blocks
 
         self.other_blocks = global_blocks
@@ -14,7 +15,8 @@ class Tetromino:
         self.time = 0
         self.has_fallen = False
 
-        
+        self.effect_list = effects
+
 
     def update(self, delta):
         self.time += delta
@@ -41,6 +43,8 @@ class Tetromino:
             self.has_fallen = True
             for block in self.blocks:
                 block.has_fallen = True
+                if self.effect_list is not None:
+                    self.effect_list.append(BlockFall(block, 250, 3))
             
     
 

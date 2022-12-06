@@ -12,8 +12,6 @@ SCREEN_WIDTH, SCREEN_HEIGHT = 30 * GRID_LENGTH, 30 * GRID_HEIGHT
 #Tuple
 dimensions = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
-#Display screen
-screen = pygame.display.set_mode(dimensions)
 screen_center = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
 #Screen name

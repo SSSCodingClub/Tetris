@@ -5,6 +5,8 @@ from game_over import GameOver
 
 scene = Start()
 
+screen = pygame.display.set_mode(dimensions)
+
 is_running = True
 
 previous_time = time.time()
