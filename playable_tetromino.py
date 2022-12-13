@@ -49,8 +49,7 @@ class PlayableTetromino(Tetromino):
 
     def __init__(self, global_blocks, shape, effects=None):
         super().__init__(global_blocks, [], effects)
-        #self.shape = shape
-        self.shape = "I"
+        self.shape = shape
         self.colour = random.choice(self.colours)
         self.blocks = []
 
@@ -144,4 +143,5 @@ class PlayableTetromino(Tetromino):
                     block.position = pygame.Vector2(position) + pygame.Vector2(test_x * Block.side_length,test_y * Block.side_length)
                 self.rotation_center += pygame.Vector2(test_x * Block.side_length,test_y * Block.side_length)
                 self.rotations = rotations
+                sounds["rotate"].play()
                 break

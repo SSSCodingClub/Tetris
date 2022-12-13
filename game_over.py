@@ -20,6 +20,10 @@ class GameOver:
     dark.set_alpha(125) # Transparency RGBA <- alpha 
     
     def __init__(self, score):
+        pygame.mixer.stop() # NOT the music though
+        sounds["game_over"].play()
+        pygame.mixer.music.fadeout(5000)
+
         self.score = score # so we can display it
         self.score_text = self.subtitle_font2.render(f"Score:{self.score}", True, LIGHT_GRAY)
 
@@ -33,6 +37,7 @@ class GameOver:
                 return COMMAND_EXIT
             # condition to check if player wants to play again
             if self.time > 4500 and (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
+                pygame.mixer.music.play(-1)
                 return COMMAND_START # restart the game
         
         if self.time < 10000:

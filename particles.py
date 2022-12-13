@@ -1,4 +1,6 @@
 from setup import *
+from block import Block
+
 
 class Particle:
     gravity = 600
@@ -34,6 +36,7 @@ class BlockFall:
         self.particles = [Particle(self.position + pygame.Vector2(random.random() * 15 - 15 / 2, 30), 
                         (intensity * random.random() - intensity / 2, intensity * random.random() - intensity * 0.9),
                         block.colour) for i in range(self.amount)]
+        sounds["fall"].play()
 
     def update(self, delta):
         for particle in self.particles:
@@ -49,3 +52,33 @@ class BlockFall:
     def draw(self, screen):
         for particle in self.particles:
             particle.draw(screen)
+    
+
+
+class LineClear:
+    max_time = 600
+
+    def __init__(self, position):
+        self.position = pygame.Vector2(position)
+        self.time = 0
+
+        self.blocks = [pygame.Vector2((1 + i) * Block.side_length, self.position.y) for i in range(GRID_LENGTH - 2)]
+
+        self.display = []
+        sounds["line_clear"].play()
+
+    def update(self, delta):
+        self.display = []
+        side_length = pow(0.99, self.time - 20) * 50
+        for x, i in enumerate(self.blocks):
+            self.display.append(pygame.Rect(x * Block.side_length + Block.side_length + 15 - side_length / 2, self.position.y - 15 - side_length / 2, side_length, side_length))
+        self.time += delta
+
+    def is_finished(self):
+        if self.time >= self.max_time:
+            return True
+        return False
+
+    def draw(self, screen):
+        for r in self.display:
+            pygame.draw.rect(screen, WHITE, r, border_radius = 4)

@@ -4,7 +4,7 @@ from tetromino import Tetromino
 from playable_tetromino import PlayableTetromino
 from walls import Walls
 from preview import Preview
-
+from particles import LineClear
 
 class Game:
 
@@ -41,6 +41,7 @@ class Game:
                         for block in self.tetromino.blocks:
                             block.position.x += block.side_length
                         self.tetromino.rotation_center.x += Block.side_length
+                        sounds["move"].play()
                             
                 elif event.key == pygame.K_a:
                     can_move = True
@@ -51,6 +52,7 @@ class Game:
                         for block in self.tetromino.blocks:
                             block.position.x -= block.side_length
                         self.tetromino.rotation_center.x -= Block.side_length
+                        sounds["move"].play()
 
                 elif event.key == pygame.K_s:
                     self.tetromino.move_down()
@@ -98,6 +100,8 @@ class Game:
                         self.global_blocks.remove(block)
                 
                 grid[r] = [None for i in range(GRID_LENGTH)]
+
+                self.effects.append(LineClear((0, (r + 1) * Block.side_length)))
 
                 if self.score % 10 == 0:
                     Tetromino.gravity_time = max(100, Tetromino.gravity_time - 10)
