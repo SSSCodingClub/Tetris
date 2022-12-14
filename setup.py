@@ -18,6 +18,9 @@ screen_center = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 #Screen name
 pygame.display.set_caption("Tetris")
 
+icon = pygame.transform.scale(pygame.image.load("logo.png"), (32,32))
+pygame.display.set_icon(icon)
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (127, 127, 127)
